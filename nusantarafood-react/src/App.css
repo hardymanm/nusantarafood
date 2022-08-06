@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .formTextInput {
+        @apply px-2 py-1 border-slate-200 border rounded outline-0 focus:ring-2 focus:ring-blue-200
+    }
+    .btn {
+        @apply bg-slate-200 px-4 py-1 rounded
+    }
+    .btn-small {
+        @apply bg-slate-200 px-2 py-1 rounded text-sm
+    }
+
+    .table {
+        @apply border border-slate-200
+    }
+    .table th {
+        @apply bg-slate-100 border-b
+    }
+    .table th, .table td {
+        @apply font-normal px-4 py-2 text-left
+    }
+
+    .table-bordered td, .table-bordered th {
+        @apply border
+    }
+
+
+    .fit-content {
+        width: 1%; white-space: nowrap;
+    }
+}
