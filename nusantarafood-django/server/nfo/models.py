@@ -7,13 +7,20 @@ class Judge(models.Model):
 
 class Site(models.Model):
     name = models.CharField(max_length=255)
-    address = models.CharField(max_length=255)
+    address = models.CharField(max_length=255, null=True, blank=True)
+    
+    def __str__(self):
+        return self.name
 
 
 class SiteContent(models.Model):
     site = models.ForeignKey('nfo.Site', on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
-    body = models.TextField()
+    url = models.CharField(max_length=255, null=True, blank=True)
+    content = models.TextField()
+    
+    def __str__(self):
+        return '{}: {}'.format(self.site, self.title)
 
 
 class Dataset(models.Model):
