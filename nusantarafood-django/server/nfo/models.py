@@ -27,6 +27,9 @@ class FoodCategory(models.Model):
     name = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_created=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name_plural = 'food categories'
 
 
 class Recipe(models.Model):
@@ -49,6 +52,9 @@ class LdaModel(models.Model):
     stopwords = models.TextField()
     topic_count = models.IntegerField(verbose_name="n-Topic")
     iteration = models.IntegerField(default=20)
+
+    class Meta:
+        verbose_name = 'LDA model'
 
 
 class Word(models.Model):
