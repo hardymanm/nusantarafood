@@ -5,44 +5,38 @@ class Judge(models.Model):
     name = models.CharField(max_length=255)
 
 
-class Site(models.Model):
-    name = models.CharField(max_length=255)
-    address = models.CharField(max_length=255, null=True, blank=True)
-    
-    def __str__(self):
-        return self.name
-
-
-class SiteContent(models.Model):
-    site = models.ForeignKey('nfo.Site', on_delete=models.CASCADE)
+class Content(models.Model):
     title = models.CharField(max_length=255)
     url = models.CharField(max_length=255, null=True, blank=True)
     content = models.TextField()
-    
+
     def __str__(self):
-        return '{}: {}'.format(self.site, self.title)
+        return self.url
 
 
 class Dataset(models.Model):
     name = models.CharField(max_length=255)
-    contents = models.ManyToManyField('nfo.SiteContent', through='nfo.Recipe')
+    contents = models.ManyToManyField('nfo.Content', through='nfo.Recipe')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
 
 
 class FoodCategory(models.Model):
     name = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         verbose_name_plural = 'food categories'
 
 
 class Recipe(models.Model):
     dataset = models.ForeignKey('nfo.Dataset', on_delete=models.CASCADE)
-    site_content = models.ForeignKey('nfo.SiteContent', on_delete=models.CASCADE)
-    
+    content = models.ForeignKey('nfo.Content', on_delete=models.CASCADE)
+
     # wikipedia description
     id_description = models.TextField(blank=True)
     ms_description = models.TextField(blank=True)
