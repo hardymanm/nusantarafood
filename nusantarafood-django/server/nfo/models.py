@@ -26,13 +26,13 @@ class SiteContent(models.Model):
 class Dataset(models.Model):
     name = models.CharField(max_length=255)
     contents = models.ManyToManyField('nfo.SiteContent', through='nfo.Recipe')
-    created_at = models.DateTimeField(auto_created=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 
 class FoodCategory(models.Model):
     name = models.CharField(max_length=255)
-    created_at = models.DateTimeField(auto_created=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
@@ -48,7 +48,7 @@ class Recipe(models.Model):
     ms_description = models.TextField(blank=True)
     en_description = models.TextField(blank=True)
 
-    created_at = models.DateTimeField(auto_created=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 
@@ -83,7 +83,7 @@ class TabelEvaluation(models.Model):
     suggested_categories = models.ManyToManyField('nfo.FoodCategory',
                                                   related_name='judge_tabel_categories',
                                                   related_query_name='judge_tabel_category')
-    created_at = models.DateTimeField(auto_created=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 
@@ -94,5 +94,5 @@ class WikiEvaluation(models.Model):
     suggested_categories = models.ManyToManyField('nfo.FoodCategory',
                                                   related_name='judge_wiki_categories',
                                                   related_query_name='judge_wiki_category')
-    created_at = models.DateTimeField(auto_created=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
