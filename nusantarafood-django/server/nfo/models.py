@@ -36,11 +36,12 @@ class FoodCategory(models.Model):
 class Recipe(models.Model):
     dataset = models.ForeignKey('nfo.Dataset', on_delete=models.CASCADE)
     content = models.ForeignKey('nfo.Content', on_delete=models.CASCADE)
+    title = models.CharField(max_length=255, null=True, blank=True)
 
     # wikipedia description
-    id_description = models.TextField(blank=True)
-    ms_description = models.TextField(blank=True)
-    en_description = models.TextField(blank=True)
+    id_description = models.TextField(null=True, blank=True)
+    ms_description = models.TextField(null=True, blank=True)
+    en_description = models.TextField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
