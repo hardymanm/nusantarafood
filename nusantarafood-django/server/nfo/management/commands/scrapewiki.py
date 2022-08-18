@@ -8,18 +8,18 @@ from ...models import Dataset
 
 
 def has_description(recipe):
-    if len(recipe.id_description) > 0:
+    if len(recipe.definition_id) > 0:
         return True
-    elif len(recipe.ms_description) > 0:
+    elif len(recipe.definition_ms) > 0:
         return True
-    elif len(recipe.en_description) > 0:
+    elif len(recipe.definition_en) > 0:
         return True
 
     return False
 
 
 class Command(BaseCommand):
-    # Command to fills Recipe records (id_description, ms_description, en_description) using Wikipedia.
+    # Command to fills Recipe records (definition_id, definition_ms, definition_en) using Wikipedia.
     # Run commands with 
     # $: python manage.py scrapewiki aziekitchen_ayam --skip
     # where:
@@ -49,7 +49,7 @@ class Command(BaseCommand):
                 continue
 
             recipe.title = clean_title(recipe.content.title)
-            recipe.id_description = get_wiki_summary(recipe.title, 'id', default_summary)
-            recipe.ms_description = get_wiki_summary(recipe.title, 'ms', default_summary)
-            recipe.en_description = get_wiki_summary(recipe.title, 'en', default_summary)
+            recipe.definition_id = get_wiki_summary(recipe.title, 'id', default_summary)
+            recipe.definition_ms = get_wiki_summary(recipe.title, 'ms', default_summary)
+            recipe.definition_en = get_wiki_summary(recipe.title, 'en', default_summary)
             recipe.save()

@@ -38,10 +38,10 @@ class Recipe(models.Model):
     content = models.ForeignKey('nfo.Content', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, null=True, blank=True)
 
-    # wikipedia description
-    id_description = models.TextField(null=True, blank=True)
-    ms_description = models.TextField(null=True, blank=True)
-    en_description = models.TextField(null=True, blank=True)
+    # wikipedia definition
+    definition_id = models.TextField(null=True, blank=True)
+    definition_ms = models.TextField(null=True, blank=True)
+    definition_en = models.TextField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
