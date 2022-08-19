@@ -21,7 +21,7 @@ def has_description(recipe):
 class Command(BaseCommand):
     # Command to fills Recipe records (definition_id, definition_ms, definition_en) using Wikipedia.
     # Run commands with 
-    # $: python manage.py scrapewiki aziekitchen_ayam --skip
+    # $ python manage.py scrapewiki aziekitchen_ayam --skip
     # where:
     # aziekitchen_ayam  is the dataset name (which existed inside database)
     #                   we will scrape all recipe within this dataset.
@@ -29,10 +29,8 @@ class Command(BaseCommand):
     
     def add_arguments(self, parser):
         parser.add_argument('dataset_name', nargs=1, type=str)
-        parser.add_argument('-s', '--skip', action='store_true',
-                            help='skip recipe with summary')
-        parser.add_argument('-d', '--default', type=str,
-                            help='default summary if empty')
+        parser.add_argument('-s', '--skip', action='store_true', help='skip recipe with summary')
+        parser.add_argument('-d', '--default', type=str, help='default summary if empty')
 
     def handle(self, *args, **kwargs):
         name = kwargs.get('dataset_name')[0]
