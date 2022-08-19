@@ -5,7 +5,7 @@ class Judge(models.Model):
     name = models.CharField(max_length=255)
 
 
-class Content(models.Model):
+class Document(models.Model):
     title = models.CharField(max_length=255)
     url = models.CharField(max_length=255, null=True, blank=True)
     content = models.TextField()
@@ -16,7 +16,7 @@ class Content(models.Model):
 
 class Dataset(models.Model):
     name = models.CharField(max_length=255)
-    contents = models.ManyToManyField('nfo.Content', through='nfo.Recipe')
+    documents = models.ManyToManyField('nfo.Document', through='nfo.Recipe')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -29,25 +29,31 @@ class FoodCategory(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.name
+
     class Meta:
         verbose_name_plural = 'food categories'
 
 
 class Recipe(models.Model):
     dataset = models.ForeignKey('nfo.Dataset', on_delete=models.CASCADE)
-    content = models.ForeignKey('nfo.Content', on_delete=models.CASCADE)
+    document = models.ForeignKey('nfo.Document', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, null=True, blank=True)
 
     # wikipedia definition
     definition_id = models.TextField(null=True, blank=True)
     definition_ms = models.TextField(null=True, blank=True)
     definition_en = models.TextField(null=True, blank=True)
+    
+    # tabel 1981 category
+    generated_categories = models.ManyToManyField('nfo.FoodCategory', related_name='generated_categories', related_query_name='generated_category')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
-        return '{}: {}'.format(self.dataset.name, self.content.title)
+        return '{}: {}'.format(self.dataset.name, self.document.title)
 
 
 # LDA & WordNet
@@ -72,15 +78,8 @@ class Word(models.Model):
 class TabelEvaluation(models.Model):
     judge = models.ForeignKey('nfo.Judge', on_delete=models.CASCADE)
     recipe = models.ForeignKey('nfo.Recipe', on_delete=models.CASCADE)
-    generated_categories = models.ManyToManyField('nfo.FoodCategory',
-                                                  related_name='generated_categories',
-                                                  related_query_name='generated_category')
-    correct_categories = models.ManyToManyField('nfo.FoodCategory',
-                                                related_name='correct_categories',
-                                                related_query_name='correct_category')
-    suggested_categories = models.ManyToManyField('nfo.FoodCategory',
-                                                  related_name='judge_tabel_categories',
-                                                  related_query_name='judge_tabel_category')
+    correct_categories = models.ManyToManyField('nfo.FoodCategory', related_name='correct_categories', related_query_name='correct_category')
+    suggested_categories = models.ManyToManyField('nfo.FoodCategory', related_name='judge_tabel_categories', related_query_name='judge_tabel_category')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -89,8 +88,6 @@ class TabelEvaluation(models.Model):
 class WikiEvaluation(models.Model):
     judge = models.ForeignKey('nfo.Judge', on_delete=models.CASCADE)
     recipe = models.ForeignKey('nfo.Recipe', on_delete=models.CASCADE)
-    suggested_categories = models.ManyToManyField('nfo.FoodCategory',
-                                                  related_name='judge_wiki_categories',
-                                                  related_query_name='judge_wiki_category')
+    suggested_categories = models.ManyToManyField('nfo.FoodCategory', related_name='judge_wiki_categories', related_query_name='judge_wiki_category')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
