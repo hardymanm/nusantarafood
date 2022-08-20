@@ -29,12 +29,12 @@ class Command(BaseCommand):
     
     def add_arguments(self, parser):
         parser.add_argument('dataset_name', nargs=1, type=str)
-        parser.add_argument('-s', '--skip', action='store_true', help='skip recipe with summary')
-        parser.add_argument('-d', '--default', type=str, help='default summary if empty')
+        parser.add_argument('-s', '--skip', action='store_true', help='skip recipe with summary', default=False)
+        parser.add_argument('-d', '--default', type=str, help='default summary if empty', default='Not found')
 
     def handle(self, *args, **kwargs):
         name = kwargs.get('dataset_name')[0]
-        default_summary = kwargs.get('default', 'Not found')
+        default_summary = kwargs['default']
         skip = kwargs['skip']
 
         dataset = Dataset.objects.get(name=name)
