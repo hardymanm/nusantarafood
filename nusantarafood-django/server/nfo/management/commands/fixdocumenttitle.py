@@ -1,0 +1,20 @@
+import re
+from django.core.management.base import BaseCommand
+from django.db import transaction
+
+from nfo.models import Document
+
+
+def clean(title):
+    remove_pattern = '[^A-Za-z0-9\- ]'
+    return re.sub(remove_pattern, '', title)
+
+
+class Command(BaseCommand):
+    # Only keep alphabets, numbers, dash and space in document title
+    # - Document title will affects importwiki
+    def handle(self, *args, **kwargs):
+        documents = Document.objects.all()
+        for document in documents:
+            document.title = clean(document.title)
+            document.save()
