@@ -58,11 +58,11 @@ class Recipe(models.Model):
 
 # LDA & WordNet
 class LdaModel(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     dataset = models.ForeignKey("nfo.Dataset", on_delete=models.CASCADE)
     stopwords = models.TextField()
-    topic_count = models.IntegerField(verbose_name="n-Topic")
-    iteration = models.IntegerField(default=20)
+    num_topics = models.IntegerField(verbose_name="n-Topic")
+    passes = models.IntegerField(default=20)
 
     class Meta:
         verbose_name = 'LDA model'
