@@ -71,7 +71,10 @@ class LdaModel(models.Model):
 class Word(models.Model):
     lda_model = models.ForeignKey("nfo.LdaModel", on_delete=models.CASCADE)
     noun = models.CharField(max_length=255)
-    hypernym = models.CharField(max_length=255)
+    hypernym = models.TextField(max_length=255, blank=True, null=True)
+    
+    def __str__(self):
+        return self.noun
 
 
 # Tabel 1981
