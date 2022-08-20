@@ -37,7 +37,7 @@ class JlFile:
                 url = get_by_keys(page, ['list_item_url', 'link', 'URL'])
                 content = get_by_keys(page, ['page_description', 'Page_description'])
 
-                web_pages.append({'title': title, 'content': ' '.join(flatten_list(content)), 'url': url})
+                web_pages.append({'title': title, 'content': '. '.join(flatten_list(content)), 'url': url})
                 
                 json_txt = file_input.readline()
                 
