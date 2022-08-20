@@ -49,11 +49,12 @@ def update_recipe(row_data):
 
 
 def import_xlsx_files(file_paths):
-    for p in file_paths:
+    for n, p in enumerate(file_paths):
+        print('Processing: ({}/{}) {}'.format(n+1, len(file_paths), p.as_posix()))
         data = pd.read_excel(p)
 
         with transaction.atomic():
-            for _, row in data.iterrows():
+            for i, row in data.iterrows():
                 update_recipe(row)
 
 
