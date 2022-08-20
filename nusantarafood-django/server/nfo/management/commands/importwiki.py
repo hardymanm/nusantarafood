@@ -8,6 +8,14 @@ import pandas as pd
 from nfo.models import Recipe, FoodCategory
 
 
+def get_by_keys(input_dict, keys):
+    for key in keys:
+        if key in input_dict.keys():
+            return input_dict[key]
+
+    raise Exception('Keyerror:', ','.join(keys))
+
+
 def parse_list(jsonlike_list):
     json_list = jsonlike_list.replace("'", '"')
     return json.loads(json_list)
@@ -25,14 +33,15 @@ def get_categories(json_list):
 
 def update_recipe(row_data):
     # Include duplicate title
-    recipes = Recipe.objects.filter(document__title=row_data['Title']).all()
+    recipes = Recipe.objects.filter(document__title__iexact=row_data['Title']).all()
     for recipe in recipes:
         recipe.title = row_data['Cleaned']
         recipe.definition_id = row_data['Def_IND']
         recipe.definition_ms = row_data['Def_MS']
         recipe.definition_en = row_data['Def_ENG']
 
-        categories = get_categories(row_data['Category'])
+        categories = get_by_keys(row_data, ['Category', 'category'])
+        categories = get_categories(categories)
         for category in categories:
             recipe.generated_categories.add(category)
 
