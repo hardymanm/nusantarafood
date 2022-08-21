@@ -105,3 +105,9 @@ class WikiEvaluation(models.Model):
 
 
 # Wordnet
+class WordnetEvaluation(models.Model):
+    judge = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    word = models.ForeignKey('nfo.Recipe', on_delete=models.CASCADE)
+    correct_hypernym = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
