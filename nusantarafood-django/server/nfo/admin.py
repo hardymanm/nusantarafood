@@ -1,13 +1,17 @@
 from django.contrib import admin
+from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.admin import TokenAdmin
 from nfo import models
+
 
 class DocumentAdmin(admin.ModelAdmin):
     search_fields = ['title']
 
+
 class RecipeAdmin(admin.ModelAdmin):
     search_fields = ['title']
 
-admin.site.register(models.Judge)
+
 admin.site.register(models.Document, DocumentAdmin)
 admin.site.register(models.Dataset)
 admin.site.register(models.FoodCategory)

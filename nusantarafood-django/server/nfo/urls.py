@@ -19,7 +19,7 @@ urlpatterns = [
     path('food-categories/<int:pk>/', views.FoodCategoryDetail.as_view(), name='foodcategory-detail'),
     
     path('lda-models/', views.LdaModelList.as_view()),
-    path('lda-models/<int:pk>/', views.LdaModelDetail.as_view()),
+    path('lda-models/<int:pk>/', views.LdaModelDetail.as_view(), name='ldamodel-detail'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
