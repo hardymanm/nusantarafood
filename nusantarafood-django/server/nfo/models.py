@@ -1,3 +1,4 @@
+import json
 from django.db import models
 from django.contrib.auth.models import User
 from django.dispatch import receiver
@@ -83,6 +84,9 @@ class Word(models.Model):
 
     def __str__(self):
         return self.noun
+    
+    def hypernyms(self):
+        return json.loads(self.hypernym)
 
 
 # Tabel 1981
@@ -107,7 +111,7 @@ class WikiEvaluation(models.Model):
 # Wordnet
 class WordnetEvaluation(models.Model):
     judge = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-    word = models.ForeignKey('nfo.Recipe', on_delete=models.CASCADE)
-    correct_hypernym = models.CharField(max_length=255)
+    word = models.ForeignKey('nfo.Word', on_delete=models.CASCADE)
+    correct_hypernym = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

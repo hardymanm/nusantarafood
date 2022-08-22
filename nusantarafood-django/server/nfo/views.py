@@ -1,63 +1,56 @@
-from rest_framework import generics
+from django.shortcuts import redirect, render
+from django.views.generic import ListView, DetailView, UpdateView
+from django.urls import reverse
+from django.contrib import messages
 
-from nfo import models, serializers
-
-
-class RecipeList(generics.ListCreateAPIView):
-    queryset = models.Recipe.objects.all()
-    serializer_class = serializers.RecipeSerializer
-
-
-class RecipeDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = models.Recipe.objects.all()
-    serializer_class = serializers.RecipeSerializer
+from nfo import models
+from nfo.forms import WordnetEvaluationForm
+from nfo.utils.evaluation import update_wordnet_evaluation
 
 
-class WordList(generics.ListCreateAPIView):
-    queryset = models.Word.objects.all()
-    serializer_class = serializers.WordSerializer
+def index(request):
+    return render(request, 'nfo/index.html', {})
 
 
-class WordDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = models.Word.objects.all()
-    serializer_class = serializers.WordSerializer
+class JudgeTabelList(ListView):
+    model = models.Dataset
+    template_name = 'nfo/judge/dataset_tabel.html'
 
 
-class DatasetList(generics.ListCreateAPIView):
-    queryset = models.Dataset.objects.all()
-    serializer_class = serializers.DatasetSerializer
+class JudgeWikiList(ListView):
+    model = models.Dataset
+    template_name = 'nfo/judge/dataset_wiki.html'
 
 
-class DatasetDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = models.Dataset.objects.all()
-    serializer_class = serializers.DatasetSerializer
+class JudgeWordnetList(ListView):
+    model = models.LdaModel
+    template_name = 'nfo/judge/dataset_wordnet.html'
 
 
-class DocumentList(generics.ListCreateAPIView):
-    queryset = models.Document.objects.all()
-    serializer_class = serializers.DocumentSerializer
+class JudgeWordnetInstruction(DetailView):
+    model = models.Dataset
+    template_name = 'nfo/judge/instruction_wordnet.html'
 
 
-class DocumentDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = models.Document.objects.all()
-    serializer_class = serializers.DocumentSerializer
+def judge_wordnet_item(request, pk, page):
+    model = models.LdaModel
+    template_name = 'nfo/judge/judge_wordnet.html'
 
+    if request.method == 'POST':
+        form = WordnetEvaluationForm(request.POST)
+        if form.is_valid():
+            update_wordnet_evaluation(request.user, form)
+            return redirect('judge-wordnet-item', pk=pk, page=page + 1)
 
-class FoodCategoryList(generics.ListCreateAPIView):
-    queryset = models.FoodCategory.objects.all()
-    serializer_class = serializers.FoodCategorySerializer
+    object = model.objects.get(pk=pk)
+    item = object.word_set.all()[page - 1]
+    count = object.word_set.count()
+    context = dict()
+    context['page'] = page
+    context['count'] = count
+    context['progress'] = 100 * page / count
+    context['previous_url'] = reverse('judge-wordnet-item', args=[object.pk, page - 1])
+    context['item'] = item
+    context['evaluation'] = models.WordnetEvaluation.objects.filter(judge=request.user, word=item).first()
 
-
-class FoodCategoryDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = models.FoodCategory.objects.all()
-    serializer_class = serializers.FoodCategorySerializer
-
-
-class LdaModelList(generics.ListCreateAPIView):
-    queryset = models.LdaModel.objects.all()
-    serializer_class = serializers.LdaModelSerializer
-
-
-class LdaModelDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = models.LdaModel.objects.all()
-    serializer_class = serializers.LdaModelSerializer
+    return render(request, template_name, context)

@@ -1,25 +1,16 @@
 from django.urls import path
-from rest_framework.urlpatterns import format_suffix_patterns
 from nfo import views
 
 urlpatterns = [
-    path('recipes/', views.RecipeList.as_view()),
-    path('recipes/<int:pk>/', views.RecipeDetail.as_view(), name='recipe-detail'),
+    path('', views.index),
+    path('contact-us', views.index),
+    path('contribute', views.index),
+    path('login', views.index),
     
-    path('words/', views.WordList.as_view()),
-    path('words/<int:pk>/', views.WordDetail.as_view(), name='word-detail'),
+    path('judge-wordnet', views.JudgeWordnetList.as_view(), name='judge-wordnet'),
+    path('judge-wiki', views.JudgeWikiList.as_view(), name='judge-wiki'),
+    path('judge-tabel', views.JudgeTabelList.as_view(), name='judge-tabel'),
     
-    path('datasets/', views.DatasetList.as_view()),
-    path('datasets/<int:pk>/', views.DatasetDetail.as_view(), name='dataset-detail'),
-    
-    path('documents/', views.DocumentList.as_view()),
-    path('documents/<int:pk>/', views.DocumentDetail.as_view(), name='document-detail'),
-    
-    path('food-categories/', views.FoodCategoryList.as_view()),
-    path('food-categories/<int:pk>/', views.FoodCategoryDetail.as_view(), name='foodcategory-detail'),
-    
-    path('lda-models/', views.LdaModelList.as_view()),
-    path('lda-models/<int:pk>/', views.LdaModelDetail.as_view(), name='ldamodel-detail'),
+    path('judge-wordnet/<int:pk>', views.JudgeWordnetInstruction.as_view(), name='judge-wordnet-instruction'),
+    path('judge-wordnet/<int:pk>/item/<int:page>', views.judge_wordnet_item, name='judge-wordnet-item'),
 ]
-
-urlpatterns = format_suffix_patterns(urlpatterns)

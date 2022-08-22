@@ -1,0 +1,9 @@
+{% extends "nfo/__base__.html" %}
+
+{% block content %}
+<div class="container">
+    <a href="{% url 'judge-wordnet' %}">Wordnet</a>
+    <a href="{% url 'judge-wiki' %}">Wikipedia</a>
+    <a href="{% url 'judge-tabel' %}">Tabel 1981</a>
+</div>
+{% endblock content %}
