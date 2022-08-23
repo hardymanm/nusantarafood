@@ -1,9 +1,35 @@
 {% extends "nfo/__base__.html" %}
-
 {% block content %}
-<div class="container">
-    <a href="{% url 'judge-wordnet' %}">Wordnet</a>
-    <a href="{% url 'judge-wiki' %}">Wikipedia</a>
-    <a href="{% url 'judge-tabel' %}">Tabel 1981</a>
-</div>
+    <div class="container">
+        <div class="p-3 p-md-5 my-4 bg-light rounded-3">
+            <div class="container-fluid py-3 py-md-5">
+                <h1 class="display-5 fw-bold">We Help Your Business</h1>
+                <p class="col-md-8 fs-4">
+                    It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout
+                </p>
+                <a href="#" class="btn btn-primary btn-lg">Learn More</a>
+            </div>
+        </div>
+        <h2 class="text-center my-5">How to judge the ontology</h2>
+        <div class="row">
+            <div class="mb-5 col-md-4 d-flex justify-content-center text-center">
+                <a class="text-decoration-none" href="{% url 'judge-wordnet' %}">
+                    <div class="rounded-circle bg-secondary mb-3" style="width: 10em; height: 10em;"></div>
+                    <span class="fs-5">Wordnet</span>
+                </a>
+            </div>
+            <div class="mb-5 col-md-4 d-flex justify-content-center text-center">
+                <a class="text-decoration-none" href="{% url 'judge-wiki' %}">
+                    <div class="rounded-circle bg-secondary mb-3" style="width: 10em; height: 10em;"></div>
+                    <span class="fs-5">Wikipedia</span>
+                </a>
+            </div>
+            <div class="mb-5 col-md-4 d-flex justify-content-center text-center">
+                <a class="text-decoration-none" href="{% url 'judge-tabel' %}">
+                    <div class="rounded-circle bg-secondary mb-3" style="width: 10em; height: 10em;"></div>
+                    <span class="fs-5">Tabel 1981</span>
+                </a>
+            </div>
+        </div>
+    </div>
 {% endblock content %}
