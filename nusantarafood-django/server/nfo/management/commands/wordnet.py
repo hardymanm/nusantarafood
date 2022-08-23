@@ -32,7 +32,7 @@ def load_stopwords(filename):
 def remove_long_sentences(content, max_word=20):
     short_sentences = []
     for sentence in content.split('.'):
-        if len(re.findall('\w+', sentence)) > max_word:
+        if len(re.findall('\w+', sentence)) < max_word:
             short_sentences.append(sentence)
 
     return '. '.join(short_sentences)
