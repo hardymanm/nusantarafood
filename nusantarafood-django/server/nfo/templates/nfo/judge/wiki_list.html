@@ -1,0 +1,17 @@
+{% extends "nfo/judge/__base__.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        {% for object in object_list %}
+        <div class="col-4">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <a href="{% url 'judge-wiki-instruction' object.pk %}">{{ object.name }} ({{ object.recipe_set.count }})</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock content %}

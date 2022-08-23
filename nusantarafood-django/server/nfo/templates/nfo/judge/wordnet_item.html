@@ -15,10 +15,15 @@
                              aria-valuemax="100">
                         </div>
                     </div>
-                    <div class="text-center mb-3">{{ page }}/{{ count }}</div>
+                    <div class="text-center mb-5">{{ page }}/{{ count }}</div>
                     <div class="text-center mb-5">
-                        <h3>{{ item }}</h3>
+                        <h4>{{ item|upper }}</h4>
                     </div>
+                    {% if item.hypernyms %}
+                    <div class="mb-3">
+                        Please select or suggest a correct hypernym:
+                    </div>
+                    {% endif %}
                     <div class="d-grid gap-2 mb-4">
                         {% for hypernym in item.hypernyms %}
                             <button type="button" class="btn btn-primary text-start"
@@ -27,7 +32,9 @@
                                 <span class="fst-italic">definition: {{ hypernym.definition }}</span>
                             </button>
                         {% empty %}
-                            <div class="text-center fst-italic mb-4">No hypernym found in WordNet.</div>
+                            <div class="fst-italic mb-4 bg-light d-flex align-items-center justify-content-center" style="height: 4em;">
+                                No hypernym found in WordNet
+                            </div>
                         {% endfor %}
                     </div>
                     <div class="mb-4">

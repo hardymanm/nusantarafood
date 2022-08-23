@@ -62,7 +62,7 @@ class Recipe(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return '{}: {}'.format(self.dataset.name, self.document.title)
+        return '{}'.format(self.title)
 
 
 # LDA & WordNet
@@ -93,8 +93,8 @@ class Word(models.Model):
 class TabelEvaluation(models.Model):
     judge = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     recipe = models.ForeignKey('nfo.Recipe', on_delete=models.CASCADE)
-    correct_categories = models.ManyToManyField('nfo.FoodCategory', related_name='correct_categories', related_query_name='correct_category')
-    suggested_categories = models.ManyToManyField('nfo.FoodCategory', related_name='judge_tabel_categories', related_query_name='judge_tabel_category')
+    correct_categories = models.ManyToManyField('nfo.FoodCategory', related_name='correct_categories', related_query_name='correct_category', blank=True)
+    suggested_categories = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -103,7 +103,7 @@ class TabelEvaluation(models.Model):
 class WikiEvaluation(models.Model):
     judge = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     recipe = models.ForeignKey('nfo.Recipe', on_delete=models.CASCADE)
-    suggested_categories = models.ManyToManyField('nfo.FoodCategory', related_name='judge_wiki_categories', related_query_name='judge_wiki_category')
+    suggested_categories = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
