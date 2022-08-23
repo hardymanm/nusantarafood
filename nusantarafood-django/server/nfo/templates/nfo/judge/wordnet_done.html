@@ -2,7 +2,13 @@
 
 {% block content %}
 <div class="container">
-    Thank you.
-    <a href="{% url 'home' %}">Home</a>
+    
+    <div class="p-5 bg-light rounded-3">
+        <h1>Task Finish</h1>
+        <p class="fs-4 mb-3">Thank you for your contribution.</p>
+        <a class="btn btn-primary btn-lg" href="{% url 'home' %}">Home</a>
+    </div>
+
+    
 </div>
 {% endblock content %}

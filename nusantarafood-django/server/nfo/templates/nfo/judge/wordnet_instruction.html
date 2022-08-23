@@ -1,8 +1,27 @@
 {% extends "nfo/judge/__base__.html" %}
 {% block content %}
     <div class="container">
-        Instructions...
-        <a href="{% url 'judge-wordnet-item' object.pk 1 %}">Start</a>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'home' %}">Home</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'judge-wordnet' %}">Select Dataset (Wordnet)</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Instruction</li>
+            </ol>
+        </nav>
+        
+        <div class="p-5 bg-light rounded-3">
+            <h1>Instructions</h1>
+            Some instructions
+
+            <div class="mt-5">
+                <a class="btn btn-lg btn-primary" href="{% url 'judge-wordnet-item' object.pk 1 %}">Start</a>
+            </div>
+        </div>
+
     </div>
 
     

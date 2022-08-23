@@ -1,59 +1,57 @@
 {% extends "nfo/judge/__base__.html" %}
 {% block content %}
-    <div class="container">
-        <div class="card mb-5">
-            <div class="card-body">
-                <form method="post" id="form">
-                    {% csrf_token %}
-                    <div class="progress" style="height: 6px;">
-                        <div class="progress-bar"
-                             role="progressbar"
-                             aria-label="Basic example"
-                             style="width: {{ progress }}%"
-                             aria-valuenow="25"
-                             aria-valuemin="0"
-                             aria-valuemax="100">
-                        </div>
-                    </div>
-                    <div class="text-center mb-5">{{ page }}/{{ count }}</div>
-                    <div class="text-center mb-5">
-                        <h4>{{ item|upper }}</h4>
-                    </div>
-                    {% if item.hypernyms %}
-                    <div class="mb-3">
-                        Please select or suggest a correct hypernym:
-                    </div>
-                    {% endif %}
-                    <div class="d-grid gap-2 mb-4">
-                        {% for hypernym in item.hypernyms %}
-                            <button type="button" class="btn btn-primary text-start"
-                                    onClick="selectHypernym('{{ hypernym.name }}')">
-                                <strong>{{ hypernym.name }}</strong>,
-                                <span class="fst-italic">definition: {{ hypernym.definition }}</span>
-                            </button>
-                        {% empty %}
-                            <div class="fst-italic mb-4 bg-light d-flex align-items-center justify-content-center" style="height: 4em;">
-                                No hypernym found in WordNet
-                            </div>
-                        {% endfor %}
-                    </div>
-                    <div class="mb-4">
-                        <label for="text-input" class="form-label">Suggest a hypernym:</label>
-                        <input type="text" class="form-control" id="text-input" name="correct_hypernym" value="{{ evaluation.correct_hypernym|default:'' }}" />
-                        <input type="hidden" value="{{ item.pk }}" name="word" />
-
-                    </div>
-                    <div>
-                        {% if previous_url %}
-                            <a href="{{ previous_url }}" class="btn btn-primary {% if page <= 1 %}disabled{% endif %}">Prev</a>
-                        {% else %}
-                            <a href="#" class="btn btn-primary" disabled>Prev</a>
-                        {% endif %}
-                        <button type="submit" class="btn btn-primary">Next</button>
-                    </div>
-                </form>
+    <div class="container pb-5">
+        <form method="post" id="form">
+            {% csrf_token %}
+            <div class="progress" style="height: 6px;">
+                <div class="progress-bar"
+                     role="progressbar"
+                     aria-label="Basic example"
+                     style="width: {{ progress }}%"
+                     aria-valuenow="25"
+                     aria-valuemin="0"
+                     aria-valuemax="100">
+                </div>
             </div>
-        </div>
+            <div class="text-center mb-5">{{ page }}/{{ count }}</div>
+            <div class="text-center mb-5">
+                <h4>{{ item|upper }}</h4>
+            </div>
+            {% if item.hypernyms %}<div class="mb-3">Please select or suggest a correct hypernym:</div>{% endif %}
+            <div class="d-grid gap-2 mb-4">
+                {% for hypernym in item.hypernyms %}
+                    <button type="button"
+                            class="btn btn-primary text-start"
+                            onClick="selectHypernym('{{ hypernym.name }}')">
+                        <strong>{{ hypernym.name }}</strong>,
+                        <span class="fst-italic">definition: {{ hypernym.definition }}</span>
+                    </button>
+                {% empty %}
+                    <div class="fst-italic mb-4 bg-light d-flex align-items-center justify-content-center"
+                         style="height: 4em;">
+                        No hypernym found in WordNet
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="mb-4">
+                <label for="text-input" class="form-label">Suggest a hypernym:</label>
+                <input type="text"
+                       class="form-control"
+                       id="text-input"
+                       name="correct_hypernym"
+                       value="{{ evaluation.correct_hypernym|default:'' }}"/>
+                <input type="hidden" value="{{ item.pk }}" name="word" />
+            </div>
+            <div>
+                {% if previous_url %}
+                    <a href="{{ previous_url }}"
+                       class="btn btn-primary {% if page <= 1 %}disabled{% endif %}">Prev</a>
+                {% else %}
+                    <a href="#" class="btn btn-primary" disabled>Prev</a>
+                {% endif %}
+                <button type="submit" class="btn btn-primary">Next</button>
+            </div>
+        </form>
     </div>
     <script type="text/javascript">
         function selectHypernym(hypernym) {

@@ -1,17 +1,43 @@
 {% extends "nfo/judge/__base__.html" %}
-
 {% block content %}
-<div class="container">
-    <div class="row">
-        {% for object in object_list %}
-        <div class="col-4">
-            <div class="card mb-3">
-                <div class="card-body">
-                    <a href="{% url 'judge-wiki-instruction' object.pk %}">{{ object.name }} ({{ object.recipe_set.count }})</a>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'home' %}">Home</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Select Dataset (Wiki)</li>
+            </ol>
+        </nav>
+
+        <table class="table border-start border-end border-top">
+            <thead class="bg-light">
+                <tr>
+                    <th>Dataset</th>
+                    <th class="d-none d-md-table-cell">Recipe Count</th>
+                    <th class="d-none d-md-table-cell">Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for object in object_list %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold">{{ object.name }}</div>
+                            <div class="d-block d-md-none">
+                                <div>Recipe count: {{ object.recipe_set.count }}</div>
+                                <div>Status: New</div>
+                            </div>
+                        </td>
+                        <td class="d-none d-md-table-cell">{{ object.recipe_set.count }}</td>
+                        <td class="d-none d-md-table-cell">New</td>
+                        <td style="white-space: nowrap; width: 1%;">
+                            <a class="btn btn-primary"
+                               href="{% url 'judge-wiki-instruction' object.pk %}">Start task</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-</div>
 {% endblock content %}
