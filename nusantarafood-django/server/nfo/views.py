@@ -1,7 +1,9 @@
 from django.shortcuts import redirect, render
-from django.views.generic import ListView, DetailView, UpdateView
+from django.views.generic import ListView, DetailView
 from django.urls import reverse
-from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+
 
 from nfo import models
 from nfo.forms import TabelEvaluationForm, WikiEvaluationForm, WordnetEvaluationForm
@@ -12,51 +14,52 @@ def index(request):
     return render(request, 'nfo/index.html', {})
 
 
-class JudgeTabelList(ListView):
+class JudgeTabelList(LoginRequiredMixin, ListView):
     model = models.Dataset
     template_name = 'nfo/judge/tabel_list.html'
 
 
-class JudgeTabelInstruction(DetailView):
+class JudgeTabelInstruction(LoginRequiredMixin, DetailView):
     model = models.Dataset
     template_name = 'nfo/judge/tabel_instruction.html'
 
 
-class JudgeTabelDone(DetailView):
+class JudgeTabelDone(LoginRequiredMixin, DetailView):
     model = models.Dataset
     template_name = 'nfo/judge/tabel_done.html'
 
 
-class JudgeWikiList(ListView):
+class JudgeWikiList(LoginRequiredMixin, ListView):
     model = models.Dataset
     template_name = 'nfo/judge/wiki_list.html'
 
 
-class JudgeWikiInstruction(DetailView):
+class JudgeWikiInstruction(LoginRequiredMixin, DetailView):
     model = models.Dataset
     template_name = 'nfo/judge/wiki_instruction.html'
 
 
-class JudgeWikiDone(DetailView):
+class JudgeWikiDone(LoginRequiredMixin, DetailView):
     model = models.Dataset
     template_name = 'nfo/judge/wiki_done.html'
 
 
-class JudgeWordnetList(ListView):
+class JudgeWordnetList(LoginRequiredMixin, ListView):
     model = models.LdaModel
     template_name = 'nfo/judge/wordnet_list.html'
 
 
-class JudgeWordnetInstruction(DetailView):
+class JudgeWordnetInstruction(LoginRequiredMixin, DetailView):
     model = models.LdaModel
     template_name = 'nfo/judge/wordnet_instruction.html'
 
 
-class JudgeWordnetDone(DetailView):
+class JudgeWordnetDone(LoginRequiredMixin, DetailView):
     model = models.LdaModel
     template_name = 'nfo/judge/wordnet_done.html'
 
 
+@login_required
 def judge_wordnet_item(request, pk, page):
     template_name = 'nfo/judge/wordnet_item.html'
     object = models.LdaModel.objects.get(pk=pk)
@@ -76,6 +79,7 @@ def judge_wordnet_item(request, pk, page):
     return render(request, template_name, context)
 
 
+@login_required
 def judge_wiki_item(request, pk, page):
     template_name = 'nfo/judge/wiki_item.html'
     object = models.Dataset.objects.get(pk=pk)
@@ -95,6 +99,7 @@ def judge_wiki_item(request, pk, page):
     return render(request, template_name, context)
 
 
+@login_required
 def judge_tabel_item(request, pk, page):
     template_name = 'nfo/judge/tabel_item.html'
     object = models.Dataset.objects.get(pk=pk)
