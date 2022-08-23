@@ -84,7 +84,7 @@ class Word(models.Model):
 
     def __str__(self):
         return self.noun
-    
+
     def hypernyms(self):
         return json.loads(self.hypernym)
 
@@ -98,6 +98,9 @@ class TabelEvaluation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return 'Tabel judge:{} recipe:{} resp:{}'.format(self.judge.pk, self.recipe.pk, self.suggested_categories)
+
 
 # Wikipedia
 class WikiEvaluation(models.Model):
@@ -107,6 +110,9 @@ class WikiEvaluation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return 'Wiki judge:{} recipe:{} resp:{}'.format(self.judge.pk, self.recipe.pk, self.suggested_categories)
+
 
 # Wordnet
 class WordnetEvaluation(models.Model):
@@ -115,3 +121,6 @@ class WordnetEvaluation(models.Model):
     correct_hypernym = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return 'Wordnet judge:{} word:{} resp:{}'.format(self.judge.pk, self.word.pk, self.correct_hypernym)
