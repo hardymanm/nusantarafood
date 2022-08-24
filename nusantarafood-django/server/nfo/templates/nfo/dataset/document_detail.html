@@ -1,0 +1,54 @@
+{% extends "nfo/__base__.html" %}
+{% load nfosnippet %}
+{% block content %}
+    <div class="container-xxl">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'home' %}">Home</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'dataset-list' %}">Manage Dataset</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'dataset-detail' object.dataset.pk %}">{{ object.dataset.name }}</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Document id:{{ object.pk }}</li>
+            </ol>
+        </nav>
+        <div class="card mb-3">
+            <div class="card-body">
+                <h3>{{ object.title }}</h3>
+                {% small_heading 'Title Cleaned' %}
+                <h5 class="mb-3">{{ object.title_clean }}</h5>
+                {% small_heading 'Document URL' %}
+                <a href="{{ object.url }}">{{ object.url }}</a>
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-header">Wikipedia</div>
+            <div class="card-body">
+                <div class="fw-bold ">Definition ID:</div>
+                {{ object.definition_id|default:'<span class="opacity-25">Not Found</span>' }}
+                <div class="fw-bold mt-3">Definition MS:</div>
+                {{ object.definition_ms|default:'<span class="opacity-25">Not Found</span>' }}
+                <div class="fw-bold mt-3">Definition EN:</div>
+                {{ object.definition_en|default:'<span class="opacity-25">Not Found</span>' }}
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-header">Category (Tabel 1981)</div>
+            <div class="card-body">
+                {% for category in object.generated_categories.all %}
+                    {% if not forloop.first %}, {% endif %}{{ category.name }}
+                {% empty %}
+                    <span class="opacity-25">None</span>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-header">Content</div>
+            <div class="card-body">{{ object.content }}</div>
+        </div>
+    </div>
+{% endblock content %}

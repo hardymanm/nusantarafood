@@ -1,11 +1,12 @@
 import json
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.utils import timezone
 
 from pathlib import Path
 import pandas as pd
 
-from nfo.models import Recipe, FoodCategory
+from nfo import models
 
 
 def get_by_keys(input_dict, keys):
@@ -25,27 +26,39 @@ def get_categories(json_list):
     categories = []
     categories_list = parse_list(json_list)
     for category in categories_list:
-        obj, _ = FoodCategory.objects.get_or_create(name=category)
+        obj, _ = models.FoodCategory.objects.get_or_create(name=category)
         categories.append(obj)
 
     return categories
 
 
-def update_recipe(row_data):
+def not_found_to_null(definition):
+    if definition.lower().strip() == 'not found':
+        return None
+    else:
+        return definition
+
+
+def update_document(row_data):
     # Include duplicate title
-    recipes = Recipe.objects.filter(document__title__iexact=row_data['Title']).all()
-    for recipe in recipes:
-        recipe.title = row_data['Cleaned']
-        recipe.definition_id = row_data['Def_IND']
-        recipe.definition_ms = row_data['Def_MS']
-        recipe.definition_en = row_data['Def_ENG']
+    documents = models.Document.objects.filter(title__iexact=row_data['Title']).all()
+    for document in documents:
+        document.title_clean = row_data['Cleaned']
+        document.definition_id = not_found_to_null(row_data['Def_IND'])
+        document.definition_ms = not_found_to_null(row_data['Def_MS'])
+        document.definition_en = not_found_to_null(row_data['Def_ENG'])
 
         categories = get_by_keys(row_data, ['Category', 'category'])
         categories = get_categories(categories)
         for category in categories:
-            recipe.generated_categories.add(category)
+            document.generated_categories.add(category)
 
-        recipe.save()
+        document.save()
+        
+        current_time = timezone.now()
+        document.dataset.run_wiki_at = current_time
+        document.dataset.run_tabel_at = current_time
+        document.dataset.save()
 
 
 def import_xlsx_files(file_paths):
@@ -55,7 +68,7 @@ def import_xlsx_files(file_paths):
 
         with transaction.atomic():
             for i, row in data.iterrows():
-                update_recipe(row)
+                update_document(row)
 
 
 class Command(BaseCommand):

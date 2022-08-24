@@ -41,33 +41,40 @@
                                     <a href="{% url 'dataset-detail' object.pk %}"
                                        class="fw-bold text-decoration-none me-1">{{ object.name }}</a>
                                     <div class="d-none d-md-block"></div>
-                                    <span class="fw-light fst-italic">{{ object.documents.count }} documents</span>
+                                    <span class="fw-light fst-italic">{{ object.document_set.count }} documents</span>
                                 </div>
                                 {% comment %} LDA Model {% endcomment %}
-                                <div class="col-4 col-md-3">
+                                <div class="col-4 col-md-2">
                                     <div class="mt-2 opacity-50 lh-1" style="font-size: 0.75em;">LDA Model</div>
-                                    <div>
-                                        {% if object.ldamodel_set.exists %}
-                                            <a class="text-decoration-none" href="#">{{ object.ldamodel_set.first.name }}</a>
-                                        {% else %}
-                                            <a class="badge bg-primary text-white text-decoration-none" href="#">Create</a>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                {% comment %} Tabel 1981 {% endcomment %}
-                                <div class="col-3 col-md-2">
-                                    <div class="mt-2 opacity-50 lh-1" style="font-size: 0.75em;">Tabel 1981</div>
-                                    <div>Done</div>
+                                    {% if object.lda_data %}
+                                        Done <a class="text-decoration-none fw-light"
+                                                href="{% url 'dataset-lda-detail' object.pk %}">[view]</a>
+                                    {% else %}
+                                        <a class="badge bg-secondary text-white text-decoration-none" href="#">Create</a>
+                                    {% endif %}
                                 </div>
                                 {% comment %} Wikipedia {% endcomment %}
                                 <div class="col-5 col-md-2">
-                                    <div class="mt-2 opacity-50 lh-1" style="font-size: 0.75em;">Wikipedia (id ms en)</div>
-                                    <div>(85% 60% 10%)</div>
+                                    <div class="mt-2 opacity-50 lh-1" style="font-size: 0.75em;">Wikipedia</div>
+                                    {% if object.run_wiki_at %}
+                                        Done
+                                    {% else %}
+                                        <a class="badge bg-secondary text-white text-decoration-none" href="#">Run</a>
+                                    {% endif %}
+                                </div>
+                                {% comment %} Tabel 1981 {% endcomment %}
+                                <div class="col-3 col-md-2">
+                                    <div class="mt-2 opacity-50 lh-1" style="font-size: 0.75em;">Category (Tabel 1981)</div>
+                                    {% if object.run_tabel_at %}
+                                        Done
+                                    {% else %}
+                                        <a class="badge bg-secondary text-white text-decoration-none" href="#">Run</a>
+                                    {% endif %}
                                 </div>
                                 {% comment %} Created date{% endcomment %}
-                                <div class="d-none d-md-block col-md-2">
+                                <div class="d-none d-md-block col-md-3">
                                     <div class="mt-2 opacity-50 lh-1" style="font-size: 0.75em;">Added At</div>
-                                    <div>{{ object.created_at|date:"d M Y,G:i" }}</div>
+                                    <div>{{ object.created_at|date:"d M Y, G:i" }}</div>
                                 </div>
                             </div>
                         </div>

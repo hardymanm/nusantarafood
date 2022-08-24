@@ -1,4 +1,18 @@
 import json
+import re
+
+from django.conf import settings
+
+stopwords = []
+with open(settings.BASE_DIR / 'stopwords.txt', 'r') as f:
+    stopwords = f.read().splitlines()
+
+
+def clean_title(title):
+    title = title.lower()                   # lowercase
+    words = re.findall('[A-Za-z]+', title)   # alphabet only
+    clean = filter(lambda w: w not in stopwords, words)  # remove stopwords
+    return ' '.join(clean)
 
 
 def get_by_keys(input_dict, keys):
@@ -34,10 +48,11 @@ class JlFile:
                 page = json.loads(json_txt)
 
                 title = get_by_keys(page, ['title', 'list_item_title', 'Page_title', 'Page_Title'])
+                title_clean = clean_title(title)
                 url = get_by_keys(page, ['list_item_url', 'link', 'URL'])
                 content = get_by_keys(page, ['page_description', 'Page_description'])
 
-                web_pages.append({'title': title, 'content': '. '.join(flatten_list(content)), 'url': url})
+                web_pages.append({'title': title, 'title_clean': title_clean, 'content': '. '.join(flatten_list(content)), 'url': url})
                 
                 json_txt = file_input.readline()
                 

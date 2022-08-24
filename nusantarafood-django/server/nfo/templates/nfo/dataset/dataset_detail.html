@@ -16,26 +16,37 @@
         </nav>
         <div class="card mb-3">
             <div class="card-body">
-                <h3>{{ object.name }}</h3>
+                <h3>
+                    <span class="text-muted">Dataset:</span> {{ object.name }}
+                </h3>
                 <div class="row">
-                    <div class="col-12 col-md-3 mb-3 mb-md-0">
+                    <div class="col-12 col-md-3 mb-4 mb-md-0">
                         <div class="mb-1 fw-light text-muted">Step 1: Load documents</div>
-                        <div class="mb-1"><strong>{{ object.documents.count }}</strong> documents loaded</div>
+                        <div class="mb-2 mb-md-4">
+                            <strong>{{ object.document_set.count }}</strong> documents loaded
+                        </div>
                         <button class="btn btn-danger">Delete dataset</button>
                     </div>
-                    <div class="col-12 col-md-3 mb-3 mb-md-0">
+                    <div class="col-12 col-md-3 mb-4 mb-md-0">
                         <div class="mb-1 fw-light text-muted">Step 2: Generate LDA Model</div>
-                        <div class="mb-1"><strong>DONE</strong> <a class="text-decoration-none ms-2" href="#">{{ object.name }}</a></div>
-                        <button class="btn btn-secondary">Re-create LDA Model</button>
+                        <div class="mb-2 mb-md-4">
+                            <strong>DONE</strong> <a class="text-decoration-none ms-2"
+                                                     href="{% url 'dataset-lda-detail' object.pk %}">[view]</a>
+                        </div>
+                        <button class="btn btn-secondary">Re-create</button>
                     </div>
-                    <div class="col-12 col-md-3 mb-3 mb-md-0">
+                    <div class="col-12 col-md-3 mb-4 mb-md-0">
                         <div class="mb-1 fw-light text-muted">Step 3: Get Wikipedia definitions</div>
-                        <div class="mb-1"><strong>DONE</strong> <span class="ms-2">(85% 60% 12%)</span></div>
+                        <div class="mb-2 mb-md-4">
+                            <strong>DONE</strong>
+                        </div>
                         <button class="btn btn-secondary">Re-run</button>
                     </div>
                     <div class="col-12 col-md-3">
                         <div class="mb-1 fw-light text-muted">Step 4: Generate category (Tabel 1981)</div>
-                        <div class="mb-1"><strong>DONE</strong></div>
+                        <div class="mb-2 mb-md-4">
+                            <strong>DONE</strong>
+                        </div>
                         <button class="btn btn-secondary">Re-run</button>
                     </div>
                 </div>
@@ -50,19 +61,28 @@
                 <div class="card-body {% if not forloop.first %}border-top{% endif %} py-2">
                     <div class="row">
                         <div class="col-12 col-md-6 overflow-hidden">
-                            <a class="text-decoration-none" style="white-space: nowrap" href="#">{{ document.title }}</a>
+                            <a class="text-decoration-none"
+                               style="white-space: nowrap"
+                               href="{% url 'document-detail' document.pk %}">{{ document.title }}</a>
                         </div>
-                        <div class="col-5 col-md-2">
+                        <div class="col-5 col-md-3">
                             {% small_heading 'Wikipedia Definition' %}
                             <div>
-                                <span class="me-2 text-success">ID</span>
-                                <span class="me-2 text-success">MS</span>
-                                <span class="me-2 opacity-25">EN</span>
+                                <span class="me-2 {% if document.definition_id %}text-success{% else %}opacity-25{% endif %}">ID</span>
+                                <span class="me-2 {% if document.definition_ms %}text-success{% else %}opacity-25{% endif %}">MS</span>
+                                <span class="me-2 {% if document.definition_en %}text-success{% else %}opacity-25{% endif %}">EN</span>
                             </div>
                         </div>
-                        <div class="col-7 col-md-4">
-                            {% small_heading 'Tabel 1981 Categories' %}
-                            <div class="overflow-hidden" style="white-space: nowrap;">(3) test, test, test</div>
+                        <div class="col-7 col-md-3">
+                            {% small_heading 'Category (Tabel 1981)' %}
+                            <div class="overflow-hidden" style="white-space: nowrap;">
+                                {% for category in document.generated_categories.all %}
+                                    {% if not forloop.first %},{% endif %}
+                                    {{ category.name }}
+                                {% empty %}
+                                    <span class="opacity-25">None</span>
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
                 </div>

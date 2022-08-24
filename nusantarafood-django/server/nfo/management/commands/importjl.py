@@ -12,28 +12,29 @@ def generate_dataset_name(jl_path):
     return jl_path.name.replace('.jl', '')
 
 
-def create_document(content):
+def create_document(dataset, content):
     return Document(
+        dataset=dataset,
         title=content['title'],
+        title_clean=content['title_clean'],
         url=content['url'],
         content=content['content']
     )
 
 
-def create_document_list(contents):
-    return [create_document(content) for content in contents]
+def create_document_list(dataset, contents):
+    return [create_document(dataset, content) for content in contents]
 
 
 def import_jlfiles(file_paths):
     for p in file_paths:
         dataset_name = generate_dataset_name(p)
+        dataset_filename = p.name
         documents = JlFile.load(p.as_posix())
 
         with transaction.atomic():
-            docs = Document.objects.bulk_create(create_document_list(documents))
-            dataset, _ = Dataset.objects.get_or_create(name=dataset_name)
-            for d in docs:
-                dataset.documents.add(d)
+            dataset, _ = Dataset.objects.get_or_create(name=dataset_name, source=dataset_filename)
+            docs = Document.objects.bulk_create(create_document_list(dataset, documents))
 
 
 class Command(BaseCommand):
