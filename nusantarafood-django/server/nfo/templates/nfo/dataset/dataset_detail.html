@@ -18,51 +18,25 @@
             <div class="card-body">
                 <h3>{{ object.name }}</h3>
                 <div class="row">
-                    <div class="col-3">
+                    <div class="col-12 col-md-3 mb-3 mb-md-0">
                         <div class="mb-1 fw-light text-muted">Step 1: Load documents</div>
                         <div class="mb-1"><strong>{{ object.documents.count }}</strong> documents loaded</div>
                         <button class="btn btn-danger">Delete dataset</button>
                     </div>
-                    <div class="col-3">
+                    <div class="col-12 col-md-3 mb-3 mb-md-0">
                         <div class="mb-1 fw-light text-muted">Step 2: Generate LDA Model</div>
                         <div class="mb-1"><strong>DONE</strong> <a class="text-decoration-none ms-2" href="#">{{ object.name }}</a></div>
                         <button class="btn btn-secondary">Re-create LDA Model</button>
                     </div>
-                    <div class="col-3">
+                    <div class="col-12 col-md-3 mb-3 mb-md-0">
                         <div class="mb-1 fw-light text-muted">Step 3: Get Wikipedia definitions</div>
                         <div class="mb-1"><strong>DONE</strong> <span class="ms-2">(85% 60% 12%)</span></div>
                         <button class="btn btn-secondary">Re-run</button>
                     </div>
-                    <div class="col-3">
+                    <div class="col-12 col-md-3">
                         <div class="mb-1 fw-light text-muted">Step 4: Generate category (Tabel 1981)</div>
                         <div class="mb-1"><strong>DONE</strong></div>
                         <button class="btn btn-secondary">Re-run</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="card mb-3">
-            <div class="card-header">LDA Model</div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-12 col-md-3 mb-2">
-                        <a class="text-decoration-none" href="#">{{ object.name }}</a>
-                    </div>
-                    <div class="col-4 col-md-1">
-                        {% small_heading 'Stopwords' %}
-                        1,766
-                    </div>
-                    <div class="col-4 col-md-1">
-                        {% small_heading 'N-Topics' %}
-                        7
-                    </div>
-                    <div class="col-4 col-md-1">
-                        {% small_heading 'Passes' %}
-                        20
-                    </div>
-                    <div class="col-12 col-md-6">
-                        {% small_heading 'Results' %}
-                        Terms1, term2, term3
                     </div>
                 </div>
             </div>
