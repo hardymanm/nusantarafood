@@ -65,6 +65,7 @@ class LdaModel(models.Model):
     stopwords = models.TextField()
     num_topics = models.IntegerField(verbose_name="n-Topic")
     passes = models.IntegerField(default=20)
+    data = models.TextField(null=True, blank=True)
 
     class Meta:
         verbose_name = 'LDA model'

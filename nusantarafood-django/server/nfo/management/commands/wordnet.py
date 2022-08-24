@@ -9,66 +9,13 @@ import gensim
 from sklearn.feature_extraction.text import CountVectorizer
 
 from nfo.models import Dataset, Document, LdaModel, Word
+from nfo.utils.pylda import load_stopwords, make_LDAmodel
 
 
 DEFAULT_PASSES = 20
 DEFAULT_TOPIC_COUNT = 1
 DEFAULT_LANGUAGE = "zsm"
 NUM_WORD_OUTPUT = 30
-
-nltk.download('wordnet')
-nltk.download('omw')
-nltk.download('omw-1.4')
-
-
-def load_stopwords(filename):
-    stopwords = []
-    with open(filename, 'r') as f:
-        stopwords = f.read().splitlines()
-
-    return stopwords
-
-
-def remove_long_sentences(content, max_word=20):
-    short_sentences = []
-    for sentence in content.split('.'):
-        if len(re.findall('\w+', sentence)) < max_word:
-            short_sentences.append(sentence)
-
-    return '. '.join(short_sentences)
-
-
-def remove_number(content):
-    return re.sub('\d+', '', content)
-
-
-def remove_stopwords(content, stopwords):
-    # @todo: has effect removing period. therefore we lose sentence
-    # @todo: CountVectorizer has stop_words param. Use that instead?
-    tokens = re.findall('\w+', content)
-    clean = []
-    for token in tokens:
-        if token in stopwords:
-            clean.append(token)
-
-    return ' '.join(clean)
-
-
-def make_LDAmodel(document_list, stopwords, num_topics, passes):
-    content_list = [d.content for d in document_list]
-    content_list = [remove_long_sentences(c) for c in content_list]
-    content_list = [remove_number(c) for c in content_list]
-    # content_list = [remove_stopwords(c, stopwords) for c in content_list]
-
-    vect = CountVectorizer(token_pattern='(?u)\\b\\w\\w\\w+\\b', stop_words=stopwords)
-    X = vect.fit_transform(content_list)
-    corpus = gensim.matutils.Sparse2Corpus(X, documents_columns=False)
-
-    id_map = dict((v, k) for k, v in vect.vocabulary_.items())
-    # word_map = dict((k, v) for k, v in vect.vocabulary_.items())
-
-    return gensim.models.ldamodel.LdaModel(corpus, num_topics=num_topics, passes=passes, random_state=0, id2word=id_map,
-                                           chunksize=100, alpha='auto', per_word_topics=True, minimum_probability=1E-9)
 
 
 def get_word_list(lda_model, num_words):
@@ -130,12 +77,12 @@ class Command(BaseCommand):
         documents = Document.objects.filter(dataset=dataset).all()
         stopwords = load_stopwords(stopwords_filename)
 
-        lda_model = make_LDAmodel(documents, stopwords, num_topics, passes)
+        lda_model, lda_data = make_LDAmodel(documents, stopwords, num_topics, passes)
         word_list = get_word_list(lda_model, NUM_WORD_OUTPUT)
         word_list_with_hypernyms = [scrape_hypernym(word, lang) for word in word_list]
 
         with transaction.atomic():
-            lda = LdaModel(name=dataset_name, dataset=dataset, stopwords='\n'.join(stopwords), num_topics=num_topics, passes=passes)
+            lda = LdaModel(name=dataset_name, dataset=dataset, stopwords='\n'.join(stopwords), num_topics=num_topics, passes=passes, data=lda_data.to_json())
             lda.save()
             for w, hypernyms in word_list_with_hypernyms:
                 json_hypernyms = json.dumps(hypernyms)

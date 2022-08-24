@@ -4,14 +4,24 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-
 from nfo import models
 from nfo.forms import TabelEvaluationForm, WikiEvaluationForm, WordnetEvaluationForm
+from nfo.management.commands.wordnet import load_stopwords, make_LDAmodel
 from nfo.utils.evaluation import update_tabel_evaluation, update_wiki_evaluation, update_wordnet_evaluation
 
 
 def index(request):
     return render(request, 'nfo/index.html', {})
+
+
+class DatasetList(LoginRequiredMixin, ListView):
+    model = models.Dataset
+    paginate_by = 10
+    template_name = 'nfo/dataset/dataset_list.html'
+
+class DatasetDetail(LoginRequiredMixin, DetailView):
+    model = models.Dataset
+    template_name = 'nfo/dataset/dataset_detail.html'
 
 
 class JudgeTabelList(LoginRequiredMixin, ListView):
@@ -141,3 +151,10 @@ def conditional_redirect(page, count, item_url_name, done_url_name, kwargs):
         return redirect(item_url_name, page=page + 1, **kwargs)
     else:
         return redirect(done_url_name, **kwargs)
+
+
+def generate_ldamodel(request):
+    model = models.LdaModel.objects.get(pk=3)
+    data = model.data
+    return render(request, 'nfo/test.html', {'data': data})
+    
