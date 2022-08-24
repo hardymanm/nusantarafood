@@ -18,7 +18,7 @@
                 {% nav_item request 'Contact Us' '/contact-us' '' %}
                 {% if request.user.username %}
                     {% if request.user.is_staff %}
-                        {% nav_item request 'Manage Dataset' '/dataset' '' %}
+                        {% nav_item request 'Manage Dataset' '/dataset' '^/dataset.*$' %}
                         {% nav_item request 'Admin Page' '/admin' '' %}
                     {% endif %}
                     <li class="nav-item">

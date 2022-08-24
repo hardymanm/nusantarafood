@@ -11,11 +11,9 @@
             </ol>
         </nav>
         <div class="row">
-            <div class="col col-md-3 order-md-last mb-3">
+            <div class="col-12 col-md-3 order-md-last mb-3">
                 <div class="card text-bg-light">
-                    <div class="card-header">
-                        Import Dataset from .jl file
-                    </div>
+                    <div class="card-header">Import Dataset from .jl file</div>
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="formFile" class="form-label">.jl file</label>
@@ -34,13 +32,14 @@
                     </div>
                 </div>
             </div>
-            <div class="col col-md-9 order-md-first">
+            <div class="col-12 col-md-9 order-md-first">
                 <div class="card mb-3">
                     {% for object in page_obj %}
                         <div class="card-body {% if not forloop.first %}border-top{% endif %}">
                             <div class="row">
                                 <div class="col-12 col-md-3">
-                                    <a href="{% url 'dataset-detail' object.pk %}" class="fw-bold text-decoration-none me-1">{{ object.name }}</a>
+                                    <a href="{% url 'dataset-detail' object.pk %}"
+                                       class="fw-bold text-decoration-none me-1">{{ object.name }}</a>
                                     <div class="d-none d-md-block"></div>
                                     <span class="fw-light fst-italic">{{ object.documents.count }} documents</span>
                                 </div>
@@ -51,8 +50,7 @@
                                         {% if object.ldamodel_set.exists %}
                                             <a class="text-decoration-none" href="#">{{ object.ldamodel_set.first.name }}</a>
                                         {% else %}
-                                            <span class="text-muted fw-light d-none d-md-inline-block">None</span>
-                                            [<a class="text-danger" href="#">Generate</a>]
+                                            <a class="badge bg-primary text-white text-decoration-none" href="#">Create</a>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -64,22 +62,20 @@
                                 {% comment %} Wikipedia {% endcomment %}
                                 <div class="col-5 col-md-2">
                                     <div class="mt-2 opacity-50 lh-1" style="font-size: 0.75em;">Wikipedia (id ms en)</div>
-                                    <div>
-                                        (85% 60% 10%)
-                                    </div>
+                                    <div>(85% 60% 10%)</div>
                                 </div>
                                 {% comment %} Created date{% endcomment %}
                                 <div class="d-none d-md-block col-md-2">
                                     <div class="mt-2 opacity-50 lh-1" style="font-size: 0.75em;">Added At</div>
-                                    <div>
-                                        {{ object.created_at|date:"d M Y,G:i" }}
-                                    </div>
+                                    <div>{{ object.created_at|date:"d M Y,G:i" }}</div>
                                 </div>
                             </div>
                         </div>
                     {% endfor %}
                 </div>
-                {% pagination paginator page_obj %}
+                {% comment %} Pagination {% endcomment %}
+                <div class="d-none d-md-block">{% pagination page_obj %}</div>
+                <div class="d-block d-md-none">{% pagination_small page_obj %}</div>
             </div>
         </div>
     </div>

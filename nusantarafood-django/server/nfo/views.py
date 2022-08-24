@@ -16,12 +16,22 @@ def index(request):
 
 class DatasetList(LoginRequiredMixin, ListView):
     model = models.Dataset
-    paginate_by = 10
+    paginate_by = 5
     template_name = 'nfo/dataset/dataset_list.html'
 
-class DatasetDetail(LoginRequiredMixin, DetailView):
-    model = models.Dataset
+class DatasetDetail(LoginRequiredMixin, ListView):
+    model = models.Document
+    paginate_by = 5
     template_name = 'nfo/dataset/dataset_detail.html'
+
+    def get_queryset(self):
+        dataset_pk = self.kwargs['pk']
+        return self.model.objects.filter(dataset__pk=dataset_pk)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['object'] = models.Dataset.objects.get(pk=self.kwargs['pk'])
+        return context
 
 
 class JudgeTabelList(LoginRequiredMixin, ListView):

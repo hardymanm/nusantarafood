@@ -1,0 +1,101 @@
+{% extends "nfo/__base__.html" %}
+{% load pagination %}
+{% load nfosnippet %}
+{% block content %}
+    <div class="container-xxl">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'home' %}">Home</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'dataset-list' %}">Manage Dataset</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">{{ object.name }}</li>
+            </ol>
+        </nav>
+        <div class="card mb-3">
+            <div class="card-body">
+                <h3>{{ object.name }}</h3>
+                <div class="row">
+                    <div class="col-3">
+                        <div class="mb-1 fw-light text-muted">Step 1: Load documents</div>
+                        <div class="mb-1"><strong>{{ object.documents.count }}</strong> documents loaded</div>
+                        <button class="btn btn-danger">Delete dataset</button>
+                    </div>
+                    <div class="col-3">
+                        <div class="mb-1 fw-light text-muted">Step 2: Generate LDA Model</div>
+                        <div class="mb-1"><strong>DONE</strong> <a class="text-decoration-none ms-2" href="#">{{ object.name }}</a></div>
+                        <button class="btn btn-secondary">Re-create LDA Model</button>
+                    </div>
+                    <div class="col-3">
+                        <div class="mb-1 fw-light text-muted">Step 3: Get Wikipedia definitions</div>
+                        <div class="mb-1"><strong>DONE</strong> <span class="ms-2">(85% 60% 12%)</span></div>
+                        <button class="btn btn-secondary">Re-run</button>
+                    </div>
+                    <div class="col-3">
+                        <div class="mb-1 fw-light text-muted">Step 4: Generate category (Tabel 1981)</div>
+                        <div class="mb-1"><strong>DONE</strong></div>
+                        <button class="btn btn-secondary">Re-run</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-header">LDA Model</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12 col-md-3 mb-2">
+                        <a class="text-decoration-none" href="#">{{ object.name }}</a>
+                    </div>
+                    <div class="col-4 col-md-1">
+                        {% small_heading 'Stopwords' %}
+                        1,766
+                    </div>
+                    <div class="col-4 col-md-1">
+                        {% small_heading 'N-Topics' %}
+                        7
+                    </div>
+                    <div class="col-4 col-md-1">
+                        {% small_heading 'Passes' %}
+                        20
+                    </div>
+                    <div class="col-12 col-md-6">
+                        {% small_heading 'Results' %}
+                        Terms1, term2, term3
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-header">
+                Document List
+                <span class="ms-2 fw-light text-muted">(Total: {{ object.documents.count }} items)</span>
+            </div>
+            {% for document in page_obj %}
+                <div class="card-body {% if not forloop.first %}border-top{% endif %} py-2">
+                    <div class="row">
+                        <div class="col-12 col-md-6 overflow-hidden">
+                            <a class="text-decoration-none" style="white-space: nowrap" href="#">{{ document.title }}</a>
+                        </div>
+                        <div class="col-5 col-md-2">
+                            {% small_heading 'Wikipedia Definition' %}
+                            <div>
+                                <span class="me-2 text-success">ID</span>
+                                <span class="me-2 text-success">MS</span>
+                                <span class="me-2 opacity-25">EN</span>
+                            </div>
+                        </div>
+                        <div class="col-7 col-md-4">
+                            {% small_heading 'Tabel 1981 Categories' %}
+                            <div class="overflow-hidden" style="white-space: nowrap;">(3) test, test, test</div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        {% comment %} Pagination {% endcomment %}
+        <div class="d-none d-md-block">{% pagination page_obj %}</div>
+        <div class="d-block d-md-none">{% pagination_small page_obj %}</div>
+    </div>
+{% endblock content %}
