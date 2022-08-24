@@ -8,6 +8,10 @@ urlpatterns = [
     path('login', views.index),
     
     path('test', views.generate_ldamodel, name='test'),
+    
+    path('dataset', views.DatasetList.as_view(), name='dataset-list'),
+    path('dataset/<int:pk>', views.DatasetDetail.as_view(), name='dataset-detail'),
+    
     path('judge-wordnet', views.JudgeWordnetList.as_view(), name='judge-wordnet'),
     path('judge-wiki', views.JudgeWikiList.as_view(), name='judge-wiki'),
     path('judge-tabel', views.JudgeTabelList.as_view(), name='judge-tabel'),

@@ -1,0 +1,86 @@
+{% extends "nfo/__base__.html" %}
+{% load pagination %}
+{% block content %}
+    <div class="container-xxl">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'home' %}">Home</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Manage Dataset</li>
+            </ol>
+        </nav>
+        <div class="row">
+            <div class="col col-md-3 order-md-last mb-3">
+                <div class="card text-bg-light">
+                    <div class="card-header">
+                        Import Dataset from .jl file
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="formFile" class="form-label">.jl file</label>
+                            <input class="form-control" type="file" id="formFile"/>
+                        </div>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Dataset Name</label>
+                            <input type="text" class="form-control" id="name" placeholder=""/>
+                        </div>
+                        <div class="d-none d-md-block">
+                            <button class="btn btn-primary" type="submit">Import</button>
+                        </div>
+                        <div class="d-grid d-md-none gap-2">
+                            <button class="btn btn-primary" type="submit">Import</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col col-md-9 order-md-first">
+                <div class="card mb-3">
+                    {% for object in page_obj %}
+                        <div class="card-body {% if not forloop.first %}border-top{% endif %}">
+                            <div class="row">
+                                <div class="col-12 col-md-3">
+                                    <a href="{% url 'dataset-detail' object.pk %}" class="fw-bold text-decoration-none me-1">{{ object.name }}</a>
+                                    <div class="d-none d-md-block"></div>
+                                    <span class="fw-light fst-italic">{{ object.documents.count }} documents</span>
+                                </div>
+                                {% comment %} LDA Model {% endcomment %}
+                                <div class="col-4 col-md-3">
+                                    <div class="mt-2 opacity-50 lh-1" style="font-size: 0.75em;">LDA Model</div>
+                                    <div>
+                                        {% if object.ldamodel_set.exists %}
+                                            <a class="text-decoration-none" href="#">{{ object.ldamodel_set.first.name }}</a>
+                                        {% else %}
+                                            <span class="text-muted fw-light d-none d-md-inline-block">None</span>
+                                            [<a class="text-danger" href="#">Generate</a>]
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% comment %} Tabel 1981 {% endcomment %}
+                                <div class="col-3 col-md-2">
+                                    <div class="mt-2 opacity-50 lh-1" style="font-size: 0.75em;">Tabel 1981</div>
+                                    <div>Done</div>
+                                </div>
+                                {% comment %} Wikipedia {% endcomment %}
+                                <div class="col-5 col-md-2">
+                                    <div class="mt-2 opacity-50 lh-1" style="font-size: 0.75em;">Wikipedia (id ms en)</div>
+                                    <div>
+                                        (85% 60% 10%)
+                                    </div>
+                                </div>
+                                {% comment %} Created date{% endcomment %}
+                                <div class="d-none d-md-block col-md-2">
+                                    <div class="mt-2 opacity-50 lh-1" style="font-size: 0.75em;">Added At</div>
+                                    <div>
+                                        {{ object.created_at|date:"d M Y,G:i" }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% pagination paginator page_obj %}
+            </div>
+        </div>
+    </div>
+{% endblock content %}
