@@ -117,12 +117,12 @@ class WordnetAnswer(AnswerMixin):
     correct_hypernym = models.CharField(max_length=255, null=True, blank=True)
 
 
-class WikiAnswer(models.Model):
+class WikiAnswer(AnswerMixin):
     document = models.ForeignKey('nfo.Document', on_delete=models.CASCADE)
     suggested_categories = models.TextField(null=True, blank=True)
 
 
-class TabelAnswer(models.Model):
+class TabelAnswer(AnswerMixin):
     document = models.ForeignKey('nfo.Document', on_delete=models.CASCADE)
     correct_categories = models.ManyToManyField('nfo.FoodCategory', related_name='correct_categories', related_query_name='correct_category', blank=True)
     suggested_categories = models.TextField(null=True, blank=True)

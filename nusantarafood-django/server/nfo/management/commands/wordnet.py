@@ -8,7 +8,7 @@ from nltk.corpus import wordnet
 import gensim
 from sklearn.feature_extraction.text import CountVectorizer
 
-from nfo.models import Dataset, Document, LdaModel, Word
+from nfo.models import Dataset, Document, Word
 from nfo.utils.pylda import load_stopwords, make_LDAmodel
 
 
@@ -82,9 +82,12 @@ class Command(BaseCommand):
         word_list_with_hypernyms = [scrape_hypernym(word, lang) for word in word_list]
 
         with transaction.atomic():
-            lda = LdaModel(name=dataset_name, dataset=dataset, stopwords='\n'.join(stopwords), num_topics=num_topics, passes=passes, data=lda_data.to_json())
-            lda.save()
+            dataset.stopwords = '\n'.join(stopwords)
+            dataset.num_topics = num_topics
+            dataset.passes = passes
+            dataset.lda_data = lda_data.to_json()
+            dataset.save()
             for w, hypernyms in word_list_with_hypernyms:
                 json_hypernyms = json.dumps(hypernyms)
-                word, _ = Word.objects.get_or_create(lda_model=lda, noun=w, hypernym=json_hypernyms)
+                word, _ = Word.objects.get_or_create(dataset=dataset, noun=w, hypernym=json_hypernyms)
                 word.save()

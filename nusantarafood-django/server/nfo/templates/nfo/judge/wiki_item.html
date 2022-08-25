@@ -1,7 +1,7 @@
 {% extends "nfo/judge/__base__.html" %}
 {% block content %}
     <div class="container pb-5">
-        <form method="post" id="form">
+        <form method="post" id="form" action="{% url 'judge-wiki-answer' object.pk %}">
             {% csrf_token %}
             <div class="progress" style="height: 6px;">
                 <div class="progress-bar"
@@ -11,23 +11,24 @@
                      aria-valuenow="25"
                      aria-valuemin="0"
                      aria-valuemax="100">
-                </div>
+                </div> 
             </div>
-            <div class="text-center mb-5">{{ page }}/{{ count }}</div>
+            <div class="text-center mb-5">{{ page_obj.number }}/{{ paginator.num_pages }}</div>
             <div class="text-center mb-5">
-                <h4>{{ item.document.title|upper }}</h4>
+                <h4>{{ object.title|upper }}</h4>
             </div>
+
             <div class="d-grid gap-2 mb-4">
                 <div class="bg-light border rounded p-3">
-                    {{ item.definition_id }}
+                    {{ object.definition_id }}
                     <div class="mt-2 fw-light fst-italic">id.wikipedia.org</div>
                 </div>
                 <div class="bg-light border rounded p-3">
-                    {{ item.definition_ms }}
+                    {{ object.definition_ms }}
                     <div class="mt-2 fw-light fst-italic">ms.wikipedia.org</div>
                 </div>
                 <div class="bg-light border rounded p-3">
-                    {{ item.definition_en }}
+                    {{ object.definition_en }}
                     <div class="mt-2 fw-light fst-italic">en.wikipedia.org</div>
                 </div>
             </div>
@@ -37,23 +38,35 @@
                        class="form-control"
                        id="text-input"
                        name="suggested_categories"
-                       value="{{ evaluation.suggested_categories|default:'' }}"/>
-                <input type="hidden" value="{{ item.pk }}" name="recipe" />
+                       value="{{ answer.suggested_categories|default:'' }}"/>
+                <input type="hidden" value="{{ object.pk }}" name="document" />
+                {% if page_obj.has_next %}
+                <input type="hidden" value="{% url 'judge-wiki-item' dataset.pk %}?page={{ page_obj.next_page_number }}" name="next_url" id="next-url" />
+                {% else %}
+                <input type="hidden" value="{% url 'judge-wiki-done' dataset.pk %}" name="next_url" id="next-url" />
+                {% endif %}
             </div>
             <div>
-                {% if previous_url %}
-                    <a href="{{ previous_url }}"
-                       class="btn btn-primary {% if page <= 1 %}disabled{% endif %}">Prev</a>
+                
+                {% if page_obj.has_previous %}
+                    <button type="button" class="btn btn-primary" onClick="submitAndPrevious('{% url 'judge-wiki-item' dataset.pk %}?page={{ page_obj.previous_page_number }}')">Prev</button>
                 {% else %}
-                    <a href="#" class="btn btn-primary" disabled>Prev</a>
+                    <button class="btn btn-primary" disabled>Prev</button>
                 {% endif %}
-                <button type="submit" class="btn btn-primary">Next</button>
+
+                {% if page_obj.has_next %}
+                    <button type="submit" class="btn btn-primary">Next</button>
+                {% else %}
+                    <button type="submit" class="btn btn-success">Finish</button>
+                {% endif %}
             </div>
         </form>
     </div>
     <script type="text/javascript">
-        window.addEventListener('load', function () {
-            document.getElementById('text-input').focus()
-        }, false);
+        function submitAndPrevious(prevUrl) {
+            document.getElementById('next-url').value = prevUrl;
+            document.getElementById('form').submit();
+        }
+
     </script>
 {% endblock content %}

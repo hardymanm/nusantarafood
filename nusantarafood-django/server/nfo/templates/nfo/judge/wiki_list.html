@@ -1,4 +1,7 @@
 {% extends "nfo/judge/__base__.html" %}
+{% load pagination %}
+{% load nfosnippet %}
+{% load dataset %}
 {% block content %}
     <div class="container">
         <nav aria-label="breadcrumb">
@@ -6,38 +9,46 @@
                 <li class="breadcrumb-item">
                     <a href="{% url 'home' %}">Home</a>
                 </li>
-                <li class="breadcrumb-item active" aria-current="page">Select Dataset (Wiki)</li>
+                <li class="breadcrumb-item active" aria-current="page">Select Dataset (Wikipedia)</li>
             </ol>
         </nav>
-
-        <table class="table border-start border-end border-top">
-            <thead class="bg-light">
-                <tr>
-                    <th>Dataset</th>
-                    <th class="d-none d-md-table-cell">Recipe Count</th>
-                    <th class="d-none d-md-table-cell">Status</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for object in object_list %}
-                    <tr>
-                        <td>
-                            <div class="fw-bold">{{ object.name }}</div>
-                            <div class="d-block d-md-none">
-                                <div>Recipe count: {{ object.recipe_set.count }}</div>
-                                <div>Status: New</div>
-                            </div>
-                        </td>
-                        <td class="d-none d-md-table-cell">{{ object.recipe_set.count }}</td>
-                        <td class="d-none d-md-table-cell">New</td>
-                        <td style="white-space: nowrap; width: 1%;">
-                            <a class="btn btn-primary"
-                               href="{% url 'judge-wiki-instruction' object.pk %}">Start task</a>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="card mb-3">
+            {% for object in page_obj %}
+                {% wiki_session as session %}
+                <div class="card-body {% if not forloop.first %}border-top{% endif %}">
+                    <div class="row">
+                        <div class="col-12 col-md-4">
+                            <span class="fw-bold">{{ object.name }}</span>
+                        </div>
+                        <div class="col-6 col-md-2 mb-3 mb-md-0">
+                            {% small_heading 'Status' %}
+                            {% if session.is_finished %}
+                                Completed
+                            {% elif session.continue_url %}
+                                In-progress
+                            {% else %}
+                                New
+                            {% endif %}
+                        </div>
+                        <div class="col-6 col-md-2 mb-3 mb-md-0">
+                            {% small_heading 'Number of items' %}
+                            {{ object.document_set.count }}
+                        </div>
+                        <div class="col-12 col-md-4 text-left text-md-end">
+                            {% if session.is_finished %}
+                                <button class="btn btn-secondary" type="button" disabled>Done</button>
+                            {% elif session.continue_url %}
+                                <a href="{{ session.continue_url }}" class="btn btn-success">Continue</a>
+                            {% else %}
+                                <a href="{% url 'judge-wiki-instruction' object.pk %}" class="btn btn-primary">Start</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        {% comment %} Pagination {% endcomment %}
+        <div class="d-none d-md-block">{% pagination page_obj %}</div>
+        <div class="d-block d-md-none">{% pagination_small page_obj %}</div>
     </div>
 {% endblock content %}
