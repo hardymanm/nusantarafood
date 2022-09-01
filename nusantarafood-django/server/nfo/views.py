@@ -2,6 +2,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.generic import ListView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Count
 
 from nfo import forms, models
 
@@ -45,6 +46,9 @@ class JudgeWordnetList(LoginRequiredMixin, ListView):
     model = models.Dataset
     paginate_by = 5
     template_name = 'nfo/judge/wordnet_list.html'
+
+    def get_queryset(self):
+        return self.model.objects.annotate(Count('word')).filter(word__count__gt=0).all()
 
 
 class JudgeWordnetInstruction(LoginRequiredMixin, DetailView):
