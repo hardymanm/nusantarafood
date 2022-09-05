@@ -1,6 +1,15 @@
 # NFO Django
 ## Installation
 
+Install RabbitMQ
+```sh
+apt-get install rabbitmq-server
+systemctl enable rabbitmq-server
+systemctl start rabbitmq-server
+systemcrl status rabbitmq-server
+```
+
+
 Prepare python environment
 ```sh
 apt-get install python3-venv
@@ -12,7 +21,7 @@ source .venv/bin/activate
 Install python libraries
 ```sh
 pip install django djangorestframework
-pip install pandas nltk openpyxl pyldavis wikipedia
+pip install pandas nltk openpyxl pyldavis wikipedia celery
 ```
 
 Migrate database and create admin

@@ -1,6 +1,10 @@
 import json
 from django.db import models
 from django.contrib.auth.models import User
+from django_celery_results.models import TaskResult
+from celery.result import AsyncResult
+
+from nfo import tasks
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.conf import settings
@@ -16,16 +20,39 @@ class Dataset(models.Model):
     passes = models.IntegerField(default=20)
 
     # LDA result
-    lda_data = models.TextField(null=True, blank=True)
-    
-    run_wiki_at = models.DateTimeField(null=True, default=None)
-    run_tabel_at = models.DateTimeField(null=True, default=None)
+    lda_task_id = models.CharField(max_length=255, null=True, blank=True)
+    wordnet_task_id = models.CharField(max_length=255, null=True, blank=True)
+    wiki_task_id = models.CharField(max_length=255, null=True, blank=True)
+    tabel_task_id = models.CharField(max_length=255, null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
+
+    def run_lda_task(self, topic_num, passes):
+        self.lda_task_id = tasks.create_lda_model.delay(self.pk, topic_num, passes).id
+        self.save()
+
+    def run_wordnet_task(self):
+        self.wordnet_task_id = tasks.scrape_wordnet.delay(self.pk).id
+        self.save()
+
+    def run_wiki_task(self):
+        self.wiki_task_id = tasks.scrape_wiki.delay(self.pk).id
+        self.save()
+
+    def run_tabel_task(self):
+        self.tabel_task_id = tasks.from_tabel.delay(self.pk).id
+        self.save()
+
+    def lda_task(self):
+        result = TaskResult.objects.filter(task_id=self.lda_task_id)
+        if result.exists():
+            return result.first()
+        else:
+            return {'task_id': self.lda_task_id, 'status': AsyncResult(self.lda_task_id).status}
 
 
 class Document(models.Model):
