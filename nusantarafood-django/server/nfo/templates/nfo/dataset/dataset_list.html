@@ -42,10 +42,8 @@
                     {% for object in page_obj %}
                         <div class="card-body {% if not forloop.first %}border-top{% endif %}">
                             <div class="row">
-
                                 <div class="col-12 col-md-3">
-                                    <a href="{% url 'dataset-detail' object.pk %}"
-                                       class="fw-bold text-decoration-none me-1">{{ object.name }}</a>
+                                    <a href="{% url 'dataset-detail' object.pk %}" class="fw-bold text-decoration-none me-1">{{ object.name }}</a>
                                 </div>
 
                                 <div class="col-md-1">
@@ -72,8 +70,6 @@
                                     {% small_heading 'from_table' True %}
                                     {% task_status object.tabel_task.status %}
                                 </div>
-
-
                             </div>
                         </div>
                     {% endfor %}

@@ -140,6 +140,7 @@ class SessionMixin(models.Model):
     judge = models.ForeignKey('auth.User', null=True, on_delete=models.SET_NULL)
     judge_username = models.CharField(max_length=255, null=True, blank=True)
 
+    progress = models.IntegerField(default=0)
     is_finished = models.BooleanField(default=False)
     continue_url = models.CharField(max_length=255, null=True, blank=True)
 

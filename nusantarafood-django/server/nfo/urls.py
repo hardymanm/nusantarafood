@@ -18,6 +18,9 @@ urlpatterns = [
     path('dataset/import', views.upload_jlfile, name='dataset-upload'),
     path('dataset/delete/<int:pk>', views.DatasetDelete.as_view(), name='dataset-delete'),
 
+    path('manage/judge', views.JudgeList.as_view(), name='judge-list'),
+    path('manage/judge/<int:pk>', views.JudgeDetail.as_view(), name='judge-detail'),
+
     path('judge-wordnet', views.JudgeWordnetList.as_view(), name='judge-wordnet'),
     path('judge-wiki', views.JudgeWikiList.as_view(), name='judge-wiki'),
     path('judge-tabel', views.JudgeTabelList.as_view(), name='judge-tabel'),

@@ -33,6 +33,21 @@ def task_duration(task):
         return ''
 
 
+@register.simple_tag
+def dataset_wordnet_judge_progress(dataset, judge):
+    return dataset.wordnetsession_set.filter(judge=judge).first()
+
+
+@register.simple_tag
+def dataset_wiki_judge_progress(dataset, judge):
+    return dataset.wikisession_set.filter(judge=judge).first()
+
+
+@register.simple_tag
+def dataset_tabel_judge_progress(dataset, judge):
+    return dataset.tabelsession_set.filter(judge=judge).first()
+
+
 @register.inclusion_tag('nfo/templatetags/dataset/task_status.html')
 def task_status(status):
     return {'status': status}

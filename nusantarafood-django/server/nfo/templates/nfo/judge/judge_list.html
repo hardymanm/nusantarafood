@@ -1,0 +1,65 @@
+{% extends "nfo/__base__.html" %}
+{% load pagination %}
+{% load nfosnippet %}
+{% block content %}
+    <div class="container-xxl">
+        {# Pagination #}
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'home' %}">Home</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Manage Judge</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            {# Upload Form #}
+            <div class="col-12 col-md-3 order-md-last mb-3">
+                <div class="card bg-light">
+                    <div class="card-header">Add Judge</div>
+                    <div class="card-body"></div>
+                </div>
+            </div>
+
+            {# Judge List #}
+            <div class="col-12 col-md-9 order-md-first">
+                <div class="card mb-3">
+                    {% for object in page_obj %}
+                        <div class="card-body {% if not forloop.first %}border-top{% endif %}">
+                            <div class="row">
+                                <div class="col-3">
+                                    {% small_heading 'Username' %}
+                                    <a class="fw-bold text-decoration-none" href="{% url 'judge-detail' object.pk %}">{{ object.username }}</a>
+                                </div>
+                                <div class="col-2">
+                                    {% small_heading 'Pending' %}
+                                    20 sessions
+                                </div>
+                                <div class="col-2">
+                                    {% small_heading 'In-Progress' %}
+                                    0 session
+                                </div>
+                                <div class="col-2">
+                                    {% small_heading 'Completed' %}
+                                    0 session
+                                </div>
+                                <div class="col-3">
+                                    {% small_heading 'Joined At' %}
+                                    {{ object.date_joined|date:'d/m/Y h:i a' }}
+                                    {% if object.last_login %}
+                                        <div style="font-size: 90%;">Last login {{ object.last_login|timesince }} ago</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {% comment %} Pagination {% endcomment %}
+                <div class="d-none d-md-block">{% pagination page_obj %}</div>
+                <div class="d-block d-md-none">{% pagination_small page_obj %}</div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

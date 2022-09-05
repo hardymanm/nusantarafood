@@ -1,6 +1,7 @@
 from django.shortcuts import redirect, render
 from django.views.generic import ListView, DetailView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import User
 from django.db.models import Count
 
 from nfo import forms, models, tasks
@@ -95,6 +96,26 @@ class DocumentDetail(LoginRequiredMixin, DetailView):
     template_name = 'nfo/dataset/document_detail.html'
 
 
+class JudgeList(LoginRequiredMixin, ListView):
+    model = User
+    paginate_by = 5
+    template_name = 'nfo/judge/judge_list.html'
+
+    def get_queryset(self):
+        return self.model.objects.filter(groups__name='judge')
+
+
+class JudgeDetail(LoginRequiredMixin, ListView):
+    model = models.Dataset
+    paginate_by = 10
+    template_name = 'nfo/judge/judge_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['object'] = User.objects.get(pk=self.kwargs['pk'])
+        return context
+
+
 class JudgeWordnetList(LoginRequiredMixin, ListView):
     model = models.Dataset
     paginate_by = 5
@@ -136,7 +157,7 @@ class JudgeWordnetItem(LoginRequiredMixin, ListView):
         context['answer'] = models.WordnetAnswer.objects.filter(word=context['object'], judge=self.request.user).first()
 
         dataset = models.Dataset.objects.get(pk=self.kwargs['pk'])
-        update_session(models.WordnetSession, self.request, dataset)
+        update_session(models.WordnetSession, self.request, dataset, context['progress'])
         return context
 
 
@@ -190,7 +211,7 @@ class JudgeWikiItem(LoginRequiredMixin, ListView):
         context['answer'] = models.WikiAnswer.objects.filter(document=context['object'], judge=self.request.user).first()
 
         dataset = models.Dataset.objects.get(pk=self.kwargs['pk'])
-        update_session(models.WikiSession, self.request, dataset)
+        update_session(models.WikiSession, self.request, dataset, context['progress'])
         return context
 
 
@@ -245,7 +266,7 @@ class JudgeTabelItem(LoginRequiredMixin, ListView):
         context['form'] = forms.TabelAnswerForm({'correct_categories': get_correct_categories(context['answer'])})
 
         dataset = models.Dataset.objects.get(pk=self.kwargs['pk'])
-        update_session(models.TabelSession, self.request, dataset)
+        update_session(models.TabelSession, self.request, dataset, context['progress'])
         return context
 
 
@@ -262,11 +283,12 @@ def update_tabel_answer(request, pk):
             return redirect(next_url)
 
 
-def update_session(session_cls, request, dataset):
+def update_session(session_cls, request, dataset, progress):
     session, _ = session_cls.objects.get_or_create(judge=request.user, dataset=dataset)
     session.dataset_name = dataset.name
     session.judge_username = request.user.username
     session.continue_url = '{}?page={}'.format(request.path, request.GET.get('page', ''))
+    session.progress = progress
     session.save()
 
 
