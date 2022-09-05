@@ -1,0 +1,12 @@
+{% if status == 'SUCCESS' %}
+    <code class="text-success">Success</code>
+{% elif status == 'STARTED' %}
+    <code class="text-info">Started</code>
+{% elif status == 'FAILURE' %}
+    <code class="text-danger">Failed</code>
+{% elif status == 'PENDING' %}
+    <code class="text-muted">Pending</code>
+{% else %}
+    <code>-</code>
+{% endif %}
+

@@ -100,23 +100,23 @@
                 <div class="row">
                     <div class="col-12 col-md-2 mb-2 mb-md-0">
                         {% small_heading 'Task' %}
-                        <div class="font-monospace">create_lda_model</div>
+                        <code class="text-black">create_lda_model</code>
                     </div>
                     <div class="col-12 col-md-1 mb-2 mb-md-0">
                         {% small_heading 'Status' %}
-                        {{ object.lda_task.status|default:'-' }}
+                        {% task_status object.lda_task.status %}
                     </div>
                     <div class="col-12 col-md-1 mb-2 mb-md-0">
                         {% small_heading 'Results' %}
                         {% if object.lda_task.result %}
-                            <a href="{% url 'dataset-lda-detail' object.pk %}">View</a>
+                            <code><a class="text-decoration-none" href="{% url 'dataset-lda-detail' object.pk %}">View</a></code>
                         {% else %}
                             -
                         {% endif %}
                     </div>
                     <div class="col-12 col-md-3 mb-2 mb-md-0">
                         {% small_heading 'Task ID' %}
-                        {{ object.lda_task.task_id|default:'-' }}
+                        <code class="text-black">{{ object.lda_task.task_id|default:'-' }}</code>
                     </div>
 
                     <div class="col-6 col-md-2 mb-2 mb-md-0">

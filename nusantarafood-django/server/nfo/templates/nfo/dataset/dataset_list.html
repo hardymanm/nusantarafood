@@ -1,7 +1,10 @@
 {% extends "nfo/__base__.html" %}
 {% load pagination %}
+{% load nfosnippet %}
+{% load dataset %}
 {% block content %}
     <div class="container-xxl">
+        {# Pagination #}
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item">
@@ -10,7 +13,9 @@
                 <li class="breadcrumb-item active" aria-current="page">Manage Dataset</li>
             </ol>
         </nav>
+
         <div class="row">
+            {# Upload Form #}
             <div class="col-12 col-md-3 order-md-last mb-3">
                 <div class="card text-bg-light">
                     <form action="{% url 'dataset-upload' %}" method="post" enctype="multipart/form-data">
@@ -30,50 +35,45 @@
                     </form>
                 </div>
             </div>
+
+            {# List #}
             <div class="col-12 col-md-9 order-md-first">
                 <div class="card mb-3">
                     {% for object in page_obj %}
                         <div class="card-body {% if not forloop.first %}border-top{% endif %}">
                             <div class="row">
+
                                 <div class="col-12 col-md-3">
                                     <a href="{% url 'dataset-detail' object.pk %}"
                                        class="fw-bold text-decoration-none me-1">{{ object.name }}</a>
-                                    <div class="d-none d-md-block"></div>
-                                    <span class="fw-light fst-italic">{{ object.document_set.count }} documents</span>
                                 </div>
-                                {% comment %} LDA Model {% endcomment %}
-                                <div class="col-4 col-md-2">
-                                    <div class="mt-2 opacity-50 lh-1" style="font-size: 0.75em;">LDA Model</div>
-                                    {% if object.lda_data %}
-                                        Done <a class="text-decoration-none fw-light"
-                                                href="{% url 'dataset-lda-detail' object.pk %}">[view]</a>
-                                    {% else %}
-                                        <a class="badge bg-secondary text-white text-decoration-none" href="#">Create</a>
-                                    {% endif %}
+
+                                <div class="col-md-1">
+                                    {% small_heading 'Doc.' %}
+                                    {{ object.document_set.count }}
                                 </div>
-                                {% comment %} Wikipedia {% endcomment %}
-                                <div class="col-5 col-md-2">
-                                    <div class="mt-2 opacity-50 lh-1" style="font-size: 0.75em;">Wikipedia</div>
-                                    {% if object.run_wiki_at %}
-                                        Done
-                                    {% else %}
-                                        <a class="badge bg-secondary text-white text-decoration-none" href="#">Run</a>
-                                    {% endif %}
+
+                                <div class="col-md-2">
+                                    {% small_heading 'create_lda_model' %}
+                                    {% task_status object.lda_task.status %}
                                 </div>
-                                {% comment %} Tabel 1981 {% endcomment %}
-                                <div class="col-3 col-md-2">
-                                    <div class="mt-2 opacity-50 lh-1" style="font-size: 0.75em;">Category (Tabel 1981)</div>
-                                    {% if object.run_tabel_at %}
-                                        Done
-                                    {% else %}
-                                        <a class="badge bg-secondary text-white text-decoration-none" href="#">Run</a>
-                                    {% endif %}
+
+                                <div class="col-md-2">
+                                    {% small_heading 'scrape_wordnet' True %}
+                                    {% task_status object.wordnet_task.status %}
                                 </div>
-                                {% comment %} Created date{% endcomment %}
-                                <div class="d-none d-md-block col-md-3">
-                                    <div class="mt-2 opacity-50 lh-1" style="font-size: 0.75em;">Added At</div>
-                                    <div>{{ object.created_at|date:"d M Y, G:i" }}</div>
+
+                                <div class="col-md-2">
+                                    {% small_heading 'scrape_wiki' True %}
+                                    {% task_status object.wiki_task.status %}
                                 </div>
+
+                                <div class="col-md-2">
+                                    {% small_heading 'from_table' True %}
+                                    {% task_status object.tabel_task.status %}
+                                </div>
+
+
                             </div>
                         </div>
                     {% endfor %}

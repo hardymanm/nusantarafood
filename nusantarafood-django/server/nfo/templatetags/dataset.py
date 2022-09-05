@@ -33,6 +33,11 @@ def task_duration(task):
         return ''
 
 
+@register.inclusion_tag('nfo/templatetags/dataset/task_status.html')
+def task_status(status):
+    return {'status': status}
+
+
 @register.inclusion_tag('nfo/templatetags/dataset/task_row.html')
 def dataset_task_row(task_label, task, task_url, pk):
     return {'task_label': task_label, 'task': task, 'task_url': task_url, 'dataset_pk': pk}

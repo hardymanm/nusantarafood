@@ -5,5 +5,5 @@ register = template.Library()
 
 
 @register.inclusion_tag('nfo/templatetags/nfosnippet/small_heading.html')
-def small_heading(title):
-    return {'title': title}
+def small_heading(title, monospace=False):
+    return {'title': title, 'monospace': monospace}

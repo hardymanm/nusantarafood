@@ -4,11 +4,11 @@
     <div class="row">
         <div class="col-12 col-md-2 mb-2 mb-md-0">
             {% small_heading 'Task' %}
-            <div class="font-monospace">{{ task_label }}</div>
+            <code class="text-black">{{ task_label }}</code>
         </div>
         <div class="col-12 col-md-1 mb-2 mb-md-0">
             {% small_heading 'Status' %}
-            {{ task.status|default:'-' }}
+            {% task_status task.status %}
         </div>
         <div class="col-12 col-md-1 mb-2 mb-md-0">
             {% small_heading 'Results' %}
@@ -16,7 +16,7 @@
         </div>
         <div class="col-12 col-md-3 mb-2 mb-md-0">
             {% small_heading 'Task ID' %}
-            {{ task.task_id|default:'-' }}
+            <code class="text-black">{{ task.task_id|default:'-' }}</code>
         </div>
         <div class="col-6 col-md-2 mb-2 mb-md-0">
             {% small_heading 'Created At' %}
