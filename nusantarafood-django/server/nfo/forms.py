@@ -19,3 +19,8 @@ class TabelAnswerForm(forms.ModelForm):
     class Meta:
         model = models.TabelAnswer
         fields = ['document', 'correct_categories', 'suggested_categories']
+
+
+class UploadJlForm(forms.Form):
+    # dataset_name = forms.CharField(max_length=255)
+    file = forms.FileField()

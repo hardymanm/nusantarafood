@@ -25,29 +25,42 @@
                         <div class="mb-2 mb-md-4">
                             <strong>{{ object.document_set.count }}</strong> documents loaded
                         </div>
-                        <button class="btn btn-danger">Delete dataset</button>
+                        <a href="{% url 'dataset-delete' object.pk %}" class="btn btn-danger">
+                            Delete dataset
+                        </a>
                     </div>
                     <div class="col-12 col-md-3 mb-4 mb-md-0">
                         <div class="mb-1 fw-light text-muted">Step 2: Generate LDA Model</div>
-                        <div class="mb-2 mb-md-4">
-                            <strong>DONE</strong> <a class="text-decoration-none ms-2"
-                                                     href="{% url 'dataset-lda-detail' object.pk %}">[view]</a>
-                        </div>
-                        <button class="btn btn-secondary">Re-create</button>
+                            <strong>{{ object.lda_task.status }}</strong>
+
+                            {% if object.lda_data %}
+                                <div class="mb-2 mb-md-4">
+                                    <a class="text-decoration-none ms-2" href="{% url 'dataset-lda-detail' object.pk %}">[view]</a>
+                                </div>
+                                <a href="{% url 'dataset-lda-create' object.pk %}" class="btn btn-secondary">Re-create</a>
+                            {% else %}
+                                <a href="{% url 'dataset-lda-create' object.pk %}" class="btn btn-primary">Create</a>
+                            {% endif %}
                     </div>
                     <div class="col-12 col-md-3 mb-4 mb-md-0">
                         <div class="mb-1 fw-light text-muted">Step 3: Get Wikipedia definitions</div>
-                        <div class="mb-2 mb-md-4">
-                            <strong>DONE</strong>
-                        </div>
-                        <button class="btn btn-secondary">Re-run</button>
+                        {% if object.run_wiki_at %}
+                            <div class="mb-2 mb-md-4"><strong>DONE</strong></div>
+                            <button class="btn btn-secondary">Re-run</button>
+                        {% else %}
+                            <div class="mb-2 mb-md-4 text-danger"><strong>INCOMPLETE</strong></div>
+                            <button class="btn btn-primary">Create</button>
+                        {% endif %}
                     </div>
                     <div class="col-12 col-md-3">
                         <div class="mb-1 fw-light text-muted">Step 4: Generate category (Tabel 1981)</div>
-                        <div class="mb-2 mb-md-4">
-                            <strong>DONE</strong>
-                        </div>
-                        <button class="btn btn-secondary">Re-run</button>
+                        {% if object.run_table_at %}
+                            <div class="mb-2 mb-md-4"><strong>DONE</strong></div>
+                            <button class="btn btn-secondary">Re-run</button>
+                        {% else %}
+                            <div class="mb-2 mb-md-4 text-danger"><strong>INCOMPLETE</strong></div>
+                            <button class="btn btn-primary">Create</button>
+                        {% endif %}
                     </div>
                 </div>
             </div>

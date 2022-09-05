@@ -5,9 +5,7 @@ from django_celery_results.models import TaskResult
 from celery.result import AsyncResult
 
 from nfo import tasks
-from django.dispatch import receiver
-from django.db.models.signals import post_save
-from django.conf import settings
+
 
 
 class Dataset(models.Model):

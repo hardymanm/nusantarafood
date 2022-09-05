@@ -1,10 +1,11 @@
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
-from django.urls import reverse
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
 
-from nfo import forms, models
+from nfo import forms, models, tasks
+from nfo.utils.dataset_utils import DatasetUtils
 
 
 def index(request):
@@ -16,6 +17,11 @@ class DatasetList(LoginRequiredMixin, ListView):
     paginate_by = 5
     template_name = 'nfo/dataset/dataset_list.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = forms.UploadJlForm()
+        return context
+
 
 class DatasetDetail(LoginRequiredMixin, ListView):
     model = models.Document
@@ -23,8 +29,7 @@ class DatasetDetail(LoginRequiredMixin, ListView):
     template_name = 'nfo/dataset/dataset_detail.html'
 
     def get_queryset(self):
-        dataset_pk = self.kwargs['pk']
-        return self.model.objects.filter(dataset__pk=dataset_pk)
+        return self.model.objects.filter(dataset__pk=self.kwargs['pk'])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -32,9 +37,49 @@ class DatasetDetail(LoginRequiredMixin, ListView):
         return context
 
 
+def upload_jlfile(request):
+    if request.method == 'POST':
+        form = forms.UploadJlForm(request.POST, request.FILES)
+        if form.is_valid():
+            file = request.FILES['file']
+            DatasetUtils.from_file(file)
+        else:
+            print('------------------------------')
+            print(form.errors.as_json())
+
+    return redirect('dataset-list')
+
+
+class DatasetDelete(LoginRequiredMixin, DeleteView):
+    model = models.Dataset
+    success_url = '/dataset'
+    template_name = 'nfo/dataset/dataset_delete.html'
+
+
 class DatasetLdaDetail(LoginRequiredMixin, DetailView):
     model = models.Dataset
     template_name = 'nfo/dataset/dataset_lda.html'
+
+
+class DatasetLdaCreate(LoginRequiredMixin, DetailView):
+    model = models.Dataset
+    template_name = 'nfo/dataset/lda_form.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        dataset = context['object']
+        dataset.run_lda_task(7, 20)
+        context['object'] = dataset
+        return context
+
+
+def create_lda(request):
+    pass
+
+
+def test_task(request):
+    tasks.test_store.delay('amir')
+    return JsonResponse({'done': True})
 
 
 class DocumentDetail(LoginRequiredMixin, DetailView):
@@ -190,7 +235,7 @@ class JudgeTabelItem(LoginRequiredMixin, ListView):
         context['object'] = context['page_obj'][0]
         context['answer'] = models.TabelAnswer.objects.filter(document=context['object'], judge=self.request.user).first()
         context['form'] = forms.TabelAnswerForm({'correct_categories': get_correct_categories(context['answer'])})
-        
+
         dataset = models.Dataset.objects.get(pk=self.kwargs['pk'])
         update_session(models.TabelSession, self.request, dataset)
         return context
