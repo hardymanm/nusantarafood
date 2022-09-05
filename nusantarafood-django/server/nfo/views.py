@@ -1,10 +1,10 @@
-from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.generic import ListView, DetailView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
 
 from nfo import forms, models, tasks
+from nfo.forms import CreateLdaModelForm
 from nfo.utils.dataset_utils import DatasetUtils
 
 
@@ -29,11 +29,12 @@ class DatasetDetail(LoginRequiredMixin, ListView):
     template_name = 'nfo/dataset/dataset_detail.html'
 
     def get_queryset(self):
-        return self.model.objects.filter(dataset__pk=self.kwargs['pk'])
+        return self.model.objects.filter(dataset__pk=self.kwargs['pk']).order_by('pk')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['object'] = models.Dataset.objects.get(pk=self.kwargs['pk'])
+        context['lda_form'] = CreateLdaModelForm()
         return context
 
 
@@ -61,25 +62,32 @@ class DatasetLdaDetail(LoginRequiredMixin, DetailView):
     template_name = 'nfo/dataset/dataset_lda.html'
 
 
-class DatasetLdaCreate(LoginRequiredMixin, DetailView):
-    model = models.Dataset
-    template_name = 'nfo/dataset/lda_form.html'
+def run_lda_task(request, pk):
+    if request.method == 'POST':
+        form = CreateLdaModelForm(request.POST)
+        if form.is_valid():
+            dataset = models.Dataset.objects.get(pk=pk)
+            dataset.run_lda_task(form.cleaned_data['stopwords'], form.cleaned_data['topic_num'], form.cleaned_data['passes'])
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        dataset = context['object']
-        dataset.run_lda_task(7, 20)
-        context['object'] = dataset
-        return context
+    return redirect('dataset-detail', pk)
 
 
-def create_lda(request):
-    pass
+def run_wordnet_task(request, pk):
+    dataset = models.Dataset.objects.get(pk=pk)
+    dataset.run_wordnet_task()
+    return redirect('dataset-detail', pk)
 
 
-def test_task(request):
-    tasks.test_store.delay('amir')
-    return JsonResponse({'done': True})
+def run_wiki_task(request, pk):
+    dataset = models.Dataset.objects.get(pk=pk)
+    dataset.run_wiki_task()
+    return redirect('dataset-detail', pk)
+
+
+def run_tabel_task(request, pk):
+    dataset = models.Dataset.objects.get(pk=pk)
+    dataset.run_tabel_task()
+    return redirect('dataset-detail', pk)
 
 
 class DocumentDetail(LoginRequiredMixin, DetailView):
@@ -266,6 +274,7 @@ def finish_session(session_cls, request, dataset):
     session = session_cls.objects.get(judge=request.user, dataset=dataset)
     session.is_finished = True
     session.save()
+    return session
 
 
 def get_correct_categories(answer):

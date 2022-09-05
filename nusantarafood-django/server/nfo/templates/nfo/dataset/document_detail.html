@@ -18,9 +18,9 @@
         </nav>
         <div class="card mb-3">
             <div class="card-body">
-                <h3>{{ object.title }}</h3>
+                <div class="fw-bold mb-3">{{ object.title }}</div>
                 {% small_heading 'Title Cleaned' %}
-                <h5 class="mb-3">{{ object.title_clean }}</h5>
+                <div class="mb-2">{{ object.title_clean }}</div>
                 {% small_heading 'Document URL' %}
                 <a href="{{ object.url }}">{{ object.url }}</a>
             </div>

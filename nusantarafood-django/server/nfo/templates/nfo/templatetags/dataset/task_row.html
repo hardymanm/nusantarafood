@@ -1,0 +1,50 @@
+{% load nfosnippet %}
+{% load dataset %}
+<div class="card-body border-top">
+    <div class="row">
+        <div class="col-12 col-md-2 mb-2 mb-md-0">
+            {% small_heading 'Task' %}
+            <div class="font-monospace">{{ task_label }}</div>
+        </div>
+        <div class="col-12 col-md-1 mb-2 mb-md-0">
+            {% small_heading 'Status' %}
+            {{ task.status|default:'-' }}
+        </div>
+        <div class="col-12 col-md-1 mb-2 mb-md-0">
+            {% small_heading 'Results' %}
+            -
+        </div>
+        <div class="col-12 col-md-3 mb-2 mb-md-0">
+            {% small_heading 'Task ID' %}
+            {{ task.task_id|default:'-' }}
+        </div>
+        <div class="col-6 col-md-2 mb-2 mb-md-0">
+            {% small_heading 'Created At' %}
+            <div>{{ task.date_created|date:'d/m/Y G:i a'|default:'-' }}</div>
+            {% if task.date_created %}
+                <div style="font-size: 90%;">{{ task.date_created|timesince }} ago</div>
+            {% endif %}
+        </div>
+        <div class="col-6 col-md-2 mb-3 mb-md-0">
+            {% small_heading 'Completed At' %}
+            {% if task.status == 'SUCCESS' %}
+                <div>{{ task.date_done|date:'d/m/Y G:i a'|default:'-' }}</div>
+                <div style="font-size: 90%;">Done in {% task_duration task %}</div>
+            {% else %}
+                -
+            {% endif %}
+        </div>
+        <div class="col-12 col-md-1 text-md-end">
+            {% if task.status == 'SUCCESS' %}
+                <a href="{% url task_url dataset_pk %}" style="width: 5em;" class="btn btn-secondary">Re-run</a>
+            {% elif task.status == 'STARTED' %}
+                <button style="width: 5em;" class="btn btn-secondary" disabled>
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="visually-hidden">Loading...</span>
+                </button>
+            {% else %}
+                <a href="{% url task_url dataset_pk %}" style="width: 5em;" class="btn btn-primary">Run</a>
+            {% endif %}
+        </div>
+    </div>
+</div>

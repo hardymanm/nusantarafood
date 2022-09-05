@@ -1,0 +1,21 @@
+{% load nfosnippet %}
+<div class="card-body {% if not first_row %}border-top{% endif %}">
+    <div class="row">
+        <div class="col-12 col-md-2 mb-2 mb-md-0">
+            {% small_heading 'Method' %}
+            {{ session_label }}
+        </div>
+        <div class="col-4 col-md-1">
+            {% small_heading 'Pending' %}
+            20 <span class="opacity-25">(100%)</span>
+        </div>
+        <div class="col-4 col-md-1">
+            {% small_heading 'In-Progress' %}
+            -
+        </div>
+        <div class="col-4 col-md-1">
+            {% small_heading 'Completed' %}
+            -
+        </div>
+    </div>
+</div>

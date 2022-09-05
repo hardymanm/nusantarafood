@@ -6,6 +6,17 @@ from celery.result import AsyncResult
 
 from nfo import tasks
 
+DEFAULT_LDA_NUM_TOPIC = 7
+DEFAULT_LDA_PASSES = 20
+
+
+class StopwordTemplate(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, null=True, blank=True)
+    content = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class Dataset(models.Model):
@@ -14,8 +25,8 @@ class Dataset(models.Model):
 
     # LDA model parameter
     stopwords = models.TextField(null=True, blank=True)
-    num_topics = models.IntegerField(verbose_name="n-Topic", default=7)
-    passes = models.IntegerField(default=20)
+    num_topics = models.IntegerField(verbose_name="n-Topic", default=DEFAULT_LDA_NUM_TOPIC)
+    passes = models.IntegerField(default=DEFAULT_LDA_PASSES)
 
     # LDA result
     lda_task_id = models.CharField(max_length=255, null=True, blank=True)
@@ -29,8 +40,8 @@ class Dataset(models.Model):
     def __str__(self):
         return self.name
 
-    def run_lda_task(self, topic_num, passes):
-        self.lda_task_id = tasks.create_lda_model.delay(self.pk, topic_num, passes).id
+    def run_lda_task(self, stopwords, topic_num, passes):
+        self.lda_task_id = tasks.create_lda_model.delay(self.pk, stopwords, topic_num, passes).id
         self.save()
 
     def run_wordnet_task(self):
@@ -45,12 +56,32 @@ class Dataset(models.Model):
         self.tabel_task_id = tasks.from_tabel.delay(self.pk).id
         self.save()
 
-    def lda_task(self):
-        result = TaskResult.objects.filter(task_id=self.lda_task_id)
+    def __get_task(self, task_id):
+        result = TaskResult.objects.filter(task_id=task_id)
         if result.exists():
             return result.first()
+        elif task_id:
+            return {'task_id': task_id, 'status': AsyncResult(task_id).status}
         else:
-            return {'task_id': self.lda_task_id, 'status': AsyncResult(self.lda_task_id).status}
+            return None
+
+    def lda_task(self):
+        return self.__get_task(self.lda_task_id)
+
+    def wordnet_task(self):
+        return self.__get_task(self.wordnet_task_id)
+
+    def wiki_task(self):
+        return self.__get_task(self.wiki_task_id)
+
+    def tabel_task(self):
+        return self.__get_task(self.tabel_task_id)
+
+    def stopwords_count(self):
+        if self.stopwords:
+            return len(self.stopwords.splitlines())
+        else:
+            return 0
 
 
 class Document(models.Model):

@@ -7,10 +7,10 @@ from nfo.utils.lda import Lda
 logger = get_task_logger(__name__)
 
 
-@shared_task(track_started=True, bind=True)
-def create_lda_model(dataset_id, num_topic, passes):
+@shared_task(track_started=True)
+def create_lda_model(dataset_id, stopwords, num_topic, passes):
     dataset = models.Dataset.objects.get(pk=dataset_id)
-    lda_model = Lda(dataset.document_set.all(), get_dataset_stopwords(dataset))
+    lda_model = Lda(dataset.document_set.all(), get_dataset_stopwords(dataset, stopwords))
     return lda_model.run(num_topic, passes)
 
 
@@ -29,8 +29,8 @@ def from_tabel(dataset_id):
     pass
 
 
-def get_dataset_stopwords(dataset):
+def get_dataset_stopwords(dataset, stopwords):
     if type(dataset.stopwords) == str:
-        return dataset.splitlines()
+        return dataset.stopwords.splitlines()
     else:
         return []
