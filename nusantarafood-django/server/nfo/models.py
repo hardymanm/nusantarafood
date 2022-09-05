@@ -24,7 +24,7 @@ class Dataset(models.Model):
     source = models.CharField(max_length=255, null=True, blank=True)
 
     # LDA model parameter
-    stopwords = models.TextField(null=True, blank=True)
+    stopwords = models.TextField(blank=True, default='')
     num_topics = models.IntegerField(verbose_name="n-Topic", default=DEFAULT_LDA_NUM_TOPIC)
     passes = models.IntegerField(default=DEFAULT_LDA_PASSES)
 
@@ -41,7 +41,8 @@ class Dataset(models.Model):
         return self.name
 
     def run_lda_task(self, stopwords, topic_num, passes):
-        self.lda_task_id = tasks.create_lda_model.delay(self.pk, stopwords, topic_num, passes).id
+        self.lda_task_id = tasks.create_lda_model.delay(self.pk, topic_num, passes).id
+        self.stopwords = "{}\n{}".format(self.stopwords.strip(), stopwords.strip()).strip()
         self.save()
 
     def run_wordnet_task(self):
