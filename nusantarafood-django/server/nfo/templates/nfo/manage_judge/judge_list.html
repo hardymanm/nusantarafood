@@ -18,8 +18,14 @@
             {# Add Judge Form #}
             <div class="col-12 col-md-3 order-md-last mb-3">
                 <div class="card bg-light">
-                    <div class="card-header">Add Judge</div>
-                    <div class="card-body"></div>
+                    <div class="card-header">Register Judge</div>
+                    <div class="card-body">
+                        <form action="" method="post">
+                            {% csrf_token %}
+                            {{ form }}
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
                 </div>
             </div>
 

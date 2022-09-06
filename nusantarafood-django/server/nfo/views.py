@@ -100,9 +100,23 @@ class JudgeList(LoginRequiredMixin, ListView):
     model = User
     paginate_by = 5
     template_name = 'nfo/manage_judge/judge_list.html'
+    form = forms.AddJudgeForm()
 
     def get_queryset(self):
         return self.model.objects.filter(groups__name='judge')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = self.form
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.form = forms.AddJudgeForm(request.POST)
+        if self.form.is_valid():
+            self.form.save()
+            self.form = forms.AddJudgeForm() # clear form
+
+        return self.get(request, *args, **kwargs)
 
 
 class JudgeDetail(LoginRequiredMixin, ListView):
