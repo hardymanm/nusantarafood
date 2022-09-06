@@ -16,7 +16,7 @@ def index(request):
 class DatasetList(LoginRequiredMixin, ListView):
     model = models.Dataset
     paginate_by = 5
-    template_name = 'nfo/dataset/dataset_list.html'
+    template_name = 'nfo/manage_dataset/dataset_list.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -27,7 +27,7 @@ class DatasetList(LoginRequiredMixin, ListView):
 class DatasetDetail(LoginRequiredMixin, ListView):
     model = models.Document
     paginate_by = 5
-    template_name = 'nfo/dataset/dataset_detail.html'
+    template_name = 'nfo/manage_dataset/dataset_detail.html'
 
     def get_queryset(self):
         return self.model.objects.filter(dataset__pk=self.kwargs['pk']).order_by('pk')
@@ -55,12 +55,12 @@ def upload_jlfile(request):
 class DatasetDelete(LoginRequiredMixin, DeleteView):
     model = models.Dataset
     success_url = '/dataset'
-    template_name = 'nfo/dataset/dataset_delete.html'
+    template_name = 'nfo/manage_dataset/dataset_delete.html'
 
 
 class DatasetLdaDetail(LoginRequiredMixin, DetailView):
     model = models.Dataset
-    template_name = 'nfo/dataset/dataset_lda.html'
+    template_name = 'nfo/manage_dataset/dataset_lda.html'
 
 
 def run_lda_task(request, pk):
@@ -93,13 +93,13 @@ def run_tabel_task(request, pk):
 
 class DocumentDetail(LoginRequiredMixin, DetailView):
     model = models.Document
-    template_name = 'nfo/dataset/document_detail.html'
+    template_name = 'nfo/manage_dataset/document_detail.html'
 
 
 class JudgeList(LoginRequiredMixin, ListView):
     model = User
     paginate_by = 5
-    template_name = 'nfo/judge/judge_list.html'
+    template_name = 'nfo/manage_judge/judge_list.html'
 
     def get_queryset(self):
         return self.model.objects.filter(groups__name='judge')
@@ -108,7 +108,7 @@ class JudgeList(LoginRequiredMixin, ListView):
 class JudgeDetail(LoginRequiredMixin, ListView):
     model = models.Dataset
     paginate_by = 10
-    template_name = 'nfo/judge/judge_detail.html'
+    template_name = 'nfo/manage_judge/judge_detail.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
