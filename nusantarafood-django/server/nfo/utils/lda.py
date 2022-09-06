@@ -41,7 +41,7 @@ class Lda:
 
 # Helper functions
 def to_document_list(document_objects):
-    return [d.content for d in document_objects]
+    return [d.content for d in document_objects.iterator()]
 
 
 # Helper functions

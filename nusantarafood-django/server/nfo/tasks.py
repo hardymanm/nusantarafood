@@ -49,8 +49,10 @@ def scrape_wiki(dataset_id):
     qs = models.Document.objects.filter(dataset_id=dataset_id)
     count = qs.count()
     documents = qs.all()
-    for i, document in enumerate(documents):
-        logger.info('{}/{}'.format(i + 1, count))
+    i = 0
+    for document in documents.iterator():
+        i += 1
+        logger.info('{}/{}'.format(i, count))
 
         # @todo: Different from jupyter notebook (ipynb). In ipynb, keyword is only first two word of title
         #        Need to ask why later
@@ -67,7 +69,7 @@ def from_tabel(dataset_id):
     documents = models.Document.objects.filter(dataset_id=dataset_id).all()
     tabels = models.Tabel.objects.all()
 
-    for document in documents:
+    for document in documents.iterator():
         document.generated_categories.clear()
         for tabel in tabels:
             if tabel.match(document.title):
