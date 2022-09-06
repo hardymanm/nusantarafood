@@ -1,20 +1,11 @@
 import json
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from django.utils import timezone
 
 from pathlib import Path
 import pandas as pd
 
 from nfo import models
-
-
-def get_by_keys(input_dict, keys):
-    for key in keys:
-        if key in input_dict.keys():
-            return input_dict[key]
-
-    raise Exception('Keyerror:', ','.join(keys))
 
 
 def parse_list(jsonlike_list):
@@ -43,27 +34,16 @@ def update_document(row_data):
     # Include duplicate title
     documents = models.Document.objects.filter(title__iexact=row_data['Title']).all()
     for document in documents:
-        document.title_clean = row_data['Cleaned']
         document.definition_id = not_found_to_null(row_data['Def_IND'])
         document.definition_ms = not_found_to_null(row_data['Def_MS'])
         document.definition_en = not_found_to_null(row_data['Def_ENG'])
-
-        categories = get_by_keys(row_data, ['Category', 'category'])
-        categories = get_categories(categories)
-        for category in categories:
-            document.generated_categories.add(category)
-
         document.save()
-        
-        current_time = timezone.now()
-        document.dataset.run_wiki_at = current_time
-        document.dataset.run_tabel_at = current_time
         document.dataset.save()
 
 
 def import_xlsx_files(file_paths):
     for n, p in enumerate(file_paths):
-        print('Processing: ({}/{}) {}'.format(n+1, len(file_paths), p.as_posix()))
+        print('Processing: ({}/{}) {}'.format(n + 1, len(file_paths), p.as_posix()))
         data = pd.read_excel(p)
 
         with transaction.atomic():
