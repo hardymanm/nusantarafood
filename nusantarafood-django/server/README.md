@@ -20,8 +20,8 @@ source .venv/bin/activate
 
 Install python libraries
 ```sh
-pip install django djangorestframework
-pip install pandas nltk openpyxl pyldavis wikipedia celery
+pip install django
+pip install pandas nltk openpyxl pyldavis wikipedia celery django-celery-results
 ```
 
 Migrate database and create admin
