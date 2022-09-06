@@ -17,6 +17,7 @@ class DatasetList(LoginRequiredMixin, ListView):
     model = models.Dataset
     paginate_by = 5
     template_name = 'nfo/manage_dataset/dataset_list.html'
+    ordering = '-created_at'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -103,7 +104,7 @@ class JudgeList(LoginRequiredMixin, ListView):
     form = forms.AddJudgeForm()
 
     def get_queryset(self):
-        return self.model.objects.filter(groups__name='judge')
+        return self.model.objects.filter(groups__name='judge').order_by('-date_joined')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
