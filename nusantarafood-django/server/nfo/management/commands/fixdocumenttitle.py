@@ -15,7 +15,9 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         documents = Document.objects.all()
         count = Document.objects.count()
-        for i, document in enumerate(documents):
+        i = 0
+        for document in documents.iterator():
+            i += 1
             print('Fixing title... {}/{}'.format(i, count))
             document.title = clean(document.title)
             document.save()
