@@ -51,3 +51,10 @@ class AddJudgeForm(UserCreationForm):
             judge_group.user_set.add(user)
 
         return user
+
+
+class RegexPlaygroundForm(forms.Form):
+    template_name = 'nfo/bs5_form.html'
+
+    regex = forms.CharField(required=True)
+    # datasets = forms.MultipleChoice()

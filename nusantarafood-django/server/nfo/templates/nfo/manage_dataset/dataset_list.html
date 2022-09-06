@@ -16,8 +16,8 @@
 
         <div class="row">
             {# Upload Form #}
-            <div class="col-12 col-md-3 order-md-last mb-3">
-                <div class="card text-bg-light">
+            <div class="col-12 col-md-3 order-md-last">
+                <div class="card text-bg-light mb-3">
                     <form action="{% url 'dataset-upload' %}" method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         <div class="card-header">Import Dataset from .jl file</div>
@@ -33,6 +33,14 @@
                             </div>
                         </div>
                     </form>
+                </div>
+
+                {# Tools #}
+                <div class="card mb-3">
+                    <div class="card-header">Tools</div>
+                    <div class="card-body">
+                        <a href="{% url 'regex-playground' %}" class="btn btn-secondary">Regex Playground</a>
+                    </div>
                 </div>
             </div>
 

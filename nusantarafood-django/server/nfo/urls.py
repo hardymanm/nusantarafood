@@ -9,6 +9,8 @@ urlpatterns = [
     path('dataset/<int:pk>', views.DatasetDetail.as_view(), name='dataset-detail'),
     path('dataset/lda/<int:pk>', views.DatasetLdaDetail.as_view(), name='dataset-lda-detail'),
 
+    path('dataset/regex-playground', views.RegexPlayground.as_view(), name='regex-playground'),
+
     path('dataset/task/lda/<int:pk>', views.run_lda_task, name='dataset-lda-create'),
     path('dataset/task/wordnet/<int:pk>', views.run_wordnet_task, name='dataset-run-wordnet-task'),
     path('dataset/task/wiki/<int:pk>', views.run_wiki_task, name='dataset-run-wiki-task'),

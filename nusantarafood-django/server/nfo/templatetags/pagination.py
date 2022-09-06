@@ -4,8 +4,8 @@ from django import template
 register = template.Library()
 
 
-@register.inclusion_tag('nfo/templatetags/pagination.html')
-def pagination(page_obj):
+@register.inclusion_tag('nfo/templatetags/pagination.html', takes_context=True)
+def pagination(context, page_obj):
     current = page_obj.number
     max = page_obj.paginator.num_pages
 
@@ -18,7 +18,7 @@ def pagination(page_obj):
         start = current - 7
 
     page_range = page_obj.paginator.page_range[start: start+15]
-    return {'page_range': page_range, 'page_obj': page_obj}
+    return {'page_range': page_range, 'page_obj': page_obj, 'request': context['request']}
 
 
 @register.inclusion_tag('nfo/templatetags/pagination_small.html')

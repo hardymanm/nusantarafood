@@ -1,0 +1,53 @@
+{% extends "nfo/__base__.html" %}
+{% load pagination %}
+{% load nfosnippet %}
+{% load dataset %}
+{% block content %}
+    <div class="container-xxl">
+        {# Pagination #}
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'home' %}">Home</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'dataset-list' %}">Manage Dataset</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Regex Playground</li>
+            </ol>
+        </nav>
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <form action="">
+                    {{ form }}
+                </form>
+            </div>
+
+            <div class="card-body border-top">
+                Matches {{ paginator.count }}/{{ document_count }} ({% calculate_percentage paginator.count document_count %}%) Documents
+            </div>
+
+            {% for object in page_obj %}
+                <div class="card-body border-top">
+                    <div class="row">
+                        <div class="col-2">
+                            {% small_heading 'Dataset' %}
+                            {{ object.dataset.name }}
+                        </div>
+                        <div class="col-10">
+                            {% small_heading 'Document Title' %}
+                            {{ object.title }}
+                        </div>
+                    </div>
+
+                </div>
+            {% endfor %}
+        </div>
+
+        {% comment %} Pagination {% endcomment %}
+        <div class="d-none d-md-block">{% pagination page_obj %}</div>
+        <div class="d-block d-md-none">{% pagination_small page_obj %}</div>
+
+    </div>
+{% endblock content %}

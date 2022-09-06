@@ -97,6 +97,25 @@ class DocumentDetail(LoginRequiredMixin, DetailView):
     template_name = 'nfo/manage_dataset/document_detail.html'
 
 
+class RegexPlayground(LoginRequiredMixin, ListView):
+    model = models.Document
+    paginate_by = 5
+    template_name = 'nfo/regex_playground.html'
+
+    def get_queryset(self):
+        form = forms.RegexPlaygroundForm(self.request.GET)
+        if form.is_valid():
+            return self.model.objects.filter(content__regex=form.cleaned_data['regex']).order_by('-dataset_id')
+
+        return self.model.objects.order_by('-dataset_id')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = forms.RegexPlaygroundForm(self.request.GET)
+        context['document_count'] = self.model.objects.count()
+        return context
+
+
 class JudgeList(LoginRequiredMixin, ListView):
     model = User
     paginate_by = 5
@@ -115,7 +134,7 @@ class JudgeList(LoginRequiredMixin, ListView):
         self.form = forms.AddJudgeForm(request.POST)
         if self.form.is_valid():
             self.form.save()
-            self.form = forms.AddJudgeForm() # clear form
+            self.form = forms.AddJudgeForm()  # clear form
 
         return self.get(request, *args, **kwargs)
 
