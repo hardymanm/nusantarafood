@@ -10,12 +10,11 @@
         <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
 
         <div class="input-group has-validation">
-            {% if field.widget_type == 'text' %}
-                <input type="text" class="form-control {% if field.errors %}is-invalid{% endif %}" id="{{ field.id_for_label }}" name="{{ field.name }}" value="{{ field.data|default:'' }}">
-            {% elif field.widget_type == 'email' %}
-                <input type="email" class="form-control {% if field.errors %}is-invalid{% endif %}" id="{{ field.id_for_label }}" name="{{ field.name }}" value="{{ field.data|default:'' }}">
-            {% elif field.widget_type == 'password' %}
-                <input type="password" class="form-control {% if field.errors %}is-invalid{% endif %}" id="{{ field.id_for_label }}" name="{{ field.name }}" value="{{ field.data|default:'' }}">
+            {% if field.widget_type in 'text,email,password,number' %}
+                <input type="{{ field.widget_type }}" class="form-control {% if field.errors %}is-invalid{% endif %}" id="{{ field.id_for_label }}" name="{{ field.name }}"
+                       value="{{ field.data|default:field.initial|default:'' }}">
+            {% elif field.widget_type in 'textarea' %}
+                <textarea name="{{ field.name }}" class="form-control {% if field.errors %}is-invalid{% endif %}" id="{{ field.id_for_label }}" rows="5">{{ field.data|default:field.initial|default:'' }}</textarea>
             {% else %}
                 @todo: add template for <code>{{ field.widget_type }}</code>
             {% endif %}

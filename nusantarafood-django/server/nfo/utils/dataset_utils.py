@@ -4,9 +4,9 @@ import re
 from django.conf import settings
 from nfo import models
 
-stopwords = []
 with open(settings.BASE_DIR / 'stopwords.txt', 'r') as f:
-    stopwords = f.read().splitlines()
+    stopwords_str = f.read()
+    stopwords = stopwords_str.splitlines()
 
 
 def clean_title(title):
@@ -42,7 +42,7 @@ class DatasetUtils:
     @staticmethod
     def from_file(f):
         with transaction.atomic():
-            dataset = models.Dataset(name=f.name, source=f.name)
+            dataset = models.Dataset(name=f.name, source=f.name, stopwords=stopwords_str)
             dataset.save()
 
             lines = f.read()

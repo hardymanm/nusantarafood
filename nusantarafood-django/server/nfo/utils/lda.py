@@ -1,3 +1,4 @@
+import json
 import re
 import nltk
 import gensim
@@ -33,7 +34,9 @@ class Lda:
         d = gensim.corpora.Dictionary()
         d.id2token = id_map
         d.token2id = word_map
-        return pyLDAvis.gensim_models.prepare(model, corpus, d).to_json()
+
+        # to_json returns string of string
+        return json.loads(pyLDAvis.gensim_models.prepare(model, corpus, d).to_json())
 
 
 def to_document_list(document_objects):

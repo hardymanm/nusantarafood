@@ -4,6 +4,7 @@ from nfo import models
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm
 
+
 class WordnetAnswerForm(forms.ModelForm):
     class Meta:
         model = models.WordnetAnswer
@@ -28,6 +29,8 @@ class UploadJlForm(forms.Form):
 
 
 class CreateLdaModelForm(forms.Form):
+    template_name = 'nfo/bs5_form.html'
+
     stopwords = forms.CharField(widget=forms.Textarea, required=False)
     topic_num = forms.IntegerField(min_value=1, max_value=50, initial=models.DEFAULT_LDA_NUM_TOPIC)
     passes = forms.IntegerField(min_value=1, max_value=50, initial=models.DEFAULT_LDA_PASSES)
@@ -48,4 +51,3 @@ class AddJudgeForm(UserCreationForm):
             judge_group.user_set.add(user)
 
         return user
-

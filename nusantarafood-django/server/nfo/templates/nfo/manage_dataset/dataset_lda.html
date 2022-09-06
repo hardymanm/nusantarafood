@@ -47,7 +47,7 @@
 
     </div>
     <script type="text/javascript">
-        var data = JSON.parse({{ object.lda_task.result|safe }});
+        var data = JSON.parse('{{ object.lda_task.result|safe }}');
         var ldavis_el50961396527449211522908568165_data = data;
 
         function LDAvis_load_lib(url, callback) {
