@@ -1,6 +1,5 @@
 import re
 from django.core.management.base import BaseCommand
-from django.db import transaction
 
 from nfo.models import Document
 
@@ -15,6 +14,8 @@ class Command(BaseCommand):
     # - Document title will affects importwiki
     def handle(self, *args, **kwargs):
         documents = Document.objects.all()
-        for document in documents:
+        count = Document.objects.count()
+        for i, document in enumerate(documents):
+            print('Fixing title... {}/{}'.format(i, count))
             document.title = clean(document.title)
             document.save()
