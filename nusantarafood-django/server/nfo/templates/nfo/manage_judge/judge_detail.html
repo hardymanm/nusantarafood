@@ -27,7 +27,7 @@
         <div class="card mb-3">
             <div class="card-header">Judge Sessions</div>
             {% for dataset in page_obj %}
-                <div class="card-body">
+                <div class="card-body {% if not forloop.first %}border-top{% endif %}">
                     <div class="row">
                         <div class="col-6">{{ dataset.name }}</div>
                         <div class="col-2">

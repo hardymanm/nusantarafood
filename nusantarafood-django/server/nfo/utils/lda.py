@@ -35,14 +35,16 @@ class Lda:
         d.id2token = id_map
         d.token2id = word_map
 
-        # to_json returns string of string
+        # to_json returns string of string. Remove first layer of json
         return json.loads(pyLDAvis.gensim_models.prepare(model, corpus, d).to_json())
 
 
+# Helper functions
 def to_document_list(document_objects):
     return [d.content for d in document_objects]
 
 
+# Helper functions
 def remove_long_sentences(corpus_list, max_word=20):
     results = []
     for corpus in corpus_list:
@@ -56,10 +58,12 @@ def remove_long_sentences(corpus_list, max_word=20):
     return results
 
 
+# Helper functions
 def remove_number(document_list):
     return [re.sub(r'\d+', '', corpus) for corpus in document_list]
 
 
+# Helper functions
 def remove_stopwords(corpus_list, stopwords):
     result = []
     for corpus in corpus_list:

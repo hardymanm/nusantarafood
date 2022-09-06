@@ -7,6 +7,7 @@ from django.db import transaction
 from nfo import models
 from nfo.utils import wordnet
 from nfo.utils.lda import Lda
+from nfo.utils.wiki import get_wiki_summary
 
 logger = get_task_logger(__name__)
 
@@ -45,12 +46,34 @@ def scrape_wordnet(dataset_id):
 
 @shared_task(track_started=True)
 def scrape_wiki(dataset_id):
-    pass
+    qs = models.Document.objects.filter(dataset_id=dataset_id)
+    count = qs.count()
+    documents = qs.all()
+    for i, document in enumerate(documents):
+        logger.info('{}/{}'.format(i + 1, count))
+
+        # @todo: Different from jupyter notebook (ipynb). In ipynb, keyword is only first two word of title
+        #        Need to ask why later
+        keyword = document.title_clean
+
+        document.definition_id = get_wiki_summary(keyword, 'id', '-')
+        document.definition_ms = get_wiki_summary(keyword, 'ms', '-')
+        document.definition_en = get_wiki_summary(keyword, 'en', '-')
+        document.save()
 
 
 @shared_task(track_started=True)
 def from_tabel(dataset_id):
-    pass
+    documents = models.Document.objects.filter(dataset_id=dataset_id).all()
+    tabels = models.Tabel.objects.all()
+
+    for document in documents:
+        document.generated_categories.clear()
+        for tabel in tabels:
+            if tabel.match(document.title):
+                # @todo: Store english or malay category name
+                category = get_category_object(tabel.name_en)
+                document.generated_categories.add(category)
 
 
 def get_dataset_stopwords(dataset):
@@ -58,3 +81,9 @@ def get_dataset_stopwords(dataset):
         return dataset.stopwords.splitlines()
     else:
         return []
+
+
+# helper function
+def get_category_object(name):
+    obj, _ = models.FoodCategory.objects.get_or_create(name=name)
+    return obj

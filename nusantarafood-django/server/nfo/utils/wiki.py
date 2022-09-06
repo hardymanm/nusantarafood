@@ -23,6 +23,6 @@ def extract_summary(summary, default_summary):
     return default_summary
 
 
-def get_wiki_summary(recipe, lang, default_summary):
-    summary = scrape_wikipedia(recipe, lang)
+def get_wiki_summary(title, lang, default_summary):
+    summary = scrape_wikipedia(title, lang)
     return extract_summary(summary, default_summary)

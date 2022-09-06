@@ -19,6 +19,27 @@ class StopwordTemplate(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
+class Tabel(models.Model):
+    name = models.CharField(max_length=255)
+    name_en = models.CharField(max_length=255)
+    content = models.TextField(blank=True, default='')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return '{} / {}'.format(self.name, self.name_en)
+
+    def match(self, title):
+        title = title.lower()
+        foods = self.content.splitlines()
+        for food in foods:
+            if food.strip() in title:
+                return True
+
+        return False
+
+
 class Dataset(models.Model):
     name = models.CharField(max_length=255, unique=True)
     source = models.CharField(max_length=255, null=True, blank=True)
