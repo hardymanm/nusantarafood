@@ -33,7 +33,7 @@ def not_found_to_null(definition):
 def update_document(row_data):
     # Include duplicate title
     documents = models.Document.objects.filter(title__iexact=row_data['Title']).all()
-    for document in documents:
+    for document in documents.iterator():
         document.definition_id = not_found_to_null(row_data['Def_IND'])
         document.definition_ms = not_found_to_null(row_data['Def_MS'])
         document.definition_en = not_found_to_null(row_data['Def_ENG'])
