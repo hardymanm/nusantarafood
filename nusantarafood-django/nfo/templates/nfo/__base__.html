@@ -1,0 +1,16 @@
+{% extends 'django_bootstrap5/bootstrap5.html' %}
+
+{# Load the tag library #}
+{% load django_bootstrap5 %}
+
+{# Load CSS and JavaScript #}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+{# Display django.contrib.messages as Bootstrap alerts #}
+{% bootstrap_messages %}
+
+{% block bootstrap5_content %}
+    {% include 'nfo/__navbar__.html' %}
+    {% block content %}{% endblock content %}
+{% endblock bootstrap5_content %}

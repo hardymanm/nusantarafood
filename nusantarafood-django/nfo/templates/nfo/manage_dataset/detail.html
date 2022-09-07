@@ -1,0 +1,94 @@
+{% extends "nfo/__base__.html" %}
+{% load pagination %}
+{% load nfosnippet %}
+{% load dataset %}
+{% block content %}
+    <div class="container-xxl">
+
+        {# Delete dataset modal #}
+        <div class="modal fade" id="deleteFormModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="deleteFormLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteFormLabel">Delete Dataset</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Delete Dataset?
+                    </div>
+                    <div class="modal-footer">
+                        <form action="{% url 'manage-dataset-delete' object.pk %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" value="Confirm">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger">Confirm</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Breadcrumb #}
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'home' %}">Home</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'manage-dataset-list' %}">Manage Dataset</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">{{ object.name }}</li>
+            </ol>
+        </nav>
+
+        {# Dataset Name & delete button #}
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="fw-bold mb-3">{{ object.name }}</div>
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteFormModal">
+                    Delete
+                </button>
+            </div>
+        </div>
+
+        {# Document list within this dataset #}
+        <div class="card mb-3">
+            <div class="card-header">Documents ({{ object.document_set.count }})</div>
+            {% for document in page_obj %}
+                <div class="card-body {% if not forloop.first %}border-top{% endif %} py-2">
+                    <div class="row">
+                        <div class="col-12 col-md-7 overflow-hidden">
+                            <a class="text-decoration-none"
+                               style="white-space: nowrap"
+                               href="{% url 'manage-document-detail' document.pk %}">{{ document.title }}</a>
+                        </div>
+                        <div class="col-5 col-md-2">
+                            {% small_heading 'Wikipedia Definition' %}
+                            <div>
+                                <span class="me-2 {% if document.definition_id %}text-success{% else %}opacity-25{% endif %}">ID</span>
+                                <span class="me-2 {% if document.definition_ms %}text-success{% else %}opacity-25{% endif %}">MS</span>
+                                <span class="me-2 {% if document.definition_en %}text-success{% else %}opacity-25{% endif %}">EN</span>
+                            </div>
+                        </div>
+                        <div class="col-7 col-md-3">
+                            {% small_heading 'Category (Tabel 1981)' %}
+                            <div class="overflow-hidden" style="white-space: nowrap;">
+                                {% for category in document.generated_categories.all %}
+                                    {% if not forloop.first %},{% endif %}
+                                    {{ category.name }}
+                                {% empty %}
+                                    <span class="opacity-25">None</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% comment %} Pagination {% endcomment %}
+        <div class="d-none d-md-block">{% pagination page_obj %}</div>
+        <div class="d-block d-md-none">{% pagination_small page_obj %}</div>
+
+    </div>
+{% endblock content %}

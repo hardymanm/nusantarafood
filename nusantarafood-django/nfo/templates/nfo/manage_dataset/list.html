@@ -1,0 +1,110 @@
+{% extends "nfo/__base__.html" %}
+{% load django_bootstrap5 %}
+{% load pagination %}
+{% load nfosnippet %}
+{% load dataset %}
+{% block content %}
+    <div class="container-xxl">
+        {# Pagination #}
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'home' %}">Home</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Manage Dataset</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-12 col-md-3 order-md-last">
+
+                {# Upload Form #}
+                <div class="card bg-light mb-3">
+                    <div class="card-header">
+                        Import Dataset from Files
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="{% url 'manage-dataset-upload' %}" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {% bootstrap_form form %}
+                            {% bootstrap_button button_type="submit" content="Upload Files" %}
+                        </form>
+                    </div>
+                </div>
+
+                {# Upload xls #}
+                <div class="card border-success mb-3">
+                    <div class="card-header border-success" style="background-color: #d1e7dd">
+                        Import Wiki from Files (.xlsx)
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="{% url 'manage-dataset-wiki-upload' %}" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {% bootstrap_form wiki_form %}
+                            {% bootstrap_button button_type="submit" button_class='btn-success' content="Upload Files" %}
+                        </form>
+                    </div>
+                </div>
+
+                {# Upload lda data #}
+                <div class="card border-success mb-3">
+                    <div class="card-header border-success" style="background-color: #d1e7dd">
+                        Import LDA data from Files (.json)
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="{% url 'manage-dataset-lda-upload' %}" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {% bootstrap_form lda_form %}
+                            {% bootstrap_button button_type="submit" button_class='btn-success' content="Upload Files" %}
+                        </form>
+                    </div>
+                </div>
+
+                {# Upload lda data #}
+                <div class="card border-success mb-3">
+                    <div class="card-header border-success" style="background-color: #d1e7dd">
+                        Import LDA terms from Files (.json)
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="{% url 'manage-dataset-word-upload' %}" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {% bootstrap_form lda_form %}
+                            {% bootstrap_button button_type="submit" button_class='btn-success' content="Upload Files" %}
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+
+            {# List #}
+            <div class="col-12 col-md-9 order-md-first">
+                <div class="card mb-3">
+                    {% for object in page_obj %}
+                        <div class="card-body {% if not forloop.first %}border-top{% endif %}">
+                            <div class="row">
+                                <div class="col-12 col-md-9">
+                                    <a href="{% url 'manage-dataset-detail' object.pk %}" class="text-decoration-none me-1">{{ object.name }}</a>
+                                </div>
+
+                                <div class="col-6 col-md-3 text-md-end">
+                                    {% thousand_comma object.document_set.count %} <span class="opacity-50">documents</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="card-body">
+                            Empty
+                        </div>
+                    {% endfor %}
+                </div>
+                {% comment %} Pagination {% endcomment %}
+                <div class="d-none d-md-block">{% pagination page_obj %}</div>
+                <div class="d-block d-md-none">{% pagination_small page_obj %}</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementsByClassName('form-label')[1].className = 'd-none'
+        document.getElementsByClassName('form-label')[0].className = 'd-none'
+    </script>
+{% endblock content %}

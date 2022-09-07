@@ -1,0 +1,29 @@
+{% extends 'nfo/__base__.html' %}
+
+
+{% block content %}
+
+    <div class="container-xxl">
+        <h2 class="text-center my-5">How to judge the ontology</h2>
+        <div class="row">
+            <div class="mb-5 col-md-4 d-flex justify-content-center text-center">
+                <a class="text-decoration-none" href="{% url 'judge-wordnet' %}">
+                    <div class="rounded-circle bg-secondary mb-3" style="width: 10em; height: 10em;"></div>
+                    <span class="fs-5">Wordnet</span>
+                </a>
+            </div>
+            <div class="mb-5 col-md-4 d-flex justify-content-center text-center">
+                <a class="text-decoration-none" href="{% url 'judge-wiki' %}">
+                    <div class="rounded-circle bg-secondary mb-3" style="width: 10em; height: 10em;"></div>
+                    <span class="fs-5">Wikipedia</span>
+                </a>
+            </div>
+            <div class="mb-5 col-md-4 d-flex justify-content-center text-center">
+                <a class="text-decoration-none" href="{% url 'judge-tabel' %}">
+                    <div class="rounded-circle bg-secondary mb-3" style="width: 10em; height: 10em;"></div>
+                    <span class="fs-5">Tabel 1981</span>
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

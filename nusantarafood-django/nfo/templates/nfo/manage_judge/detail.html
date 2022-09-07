@@ -1,0 +1,82 @@
+{% extends "nfo/__base__.html" %}
+{% load pagination %}
+{% load nfosnippet %}
+{% load dataset %}
+{% block content %}
+    <div class="container-xxl">
+        {# Pagination #}
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'home' %}">Home</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'manage-judge-list' %}">Manage Judge</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">{{ object.username }}</li>
+            </ol>
+        </nav>
+
+        <div class="card mb-3">
+            <div class="card-body">
+                {% small_heading 'Username' %}
+                <div class="fw-bold">{{ object.username }}</div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">Judge Sessions</div>
+            {% for dataset in page_obj %}
+                <div class="card-body {% if not forloop.first %}border-top{% endif %}">
+                    <div class="row">
+                        <div class="col-6">{{ dataset.name }}</div>
+                        <div class="col-2">
+                            {% small_heading 'Wordnet' %}
+                            {% dataset_wordnet_judge_progress dataset object as progress %}
+                            {% if progress %}
+                                {% if progress.is_finished %}
+                                    <div class="text-success">Completed</div>
+                                {% else %}
+                                    <div class="text-primary">In-Progress ({{ progress.progress }}%)</div>
+                                {% endif %}
+                            {% else %}
+                                <div class="text-secondary">Pending</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-2">
+                            {% small_heading 'Wiki' %}
+                            {% dataset_wiki_judge_progress dataset object as progress %}
+                            {% if progress %}
+                                {% if progress.is_finished %}
+                                    <div class="text-success">Completed</div>
+                                {% else %}
+                                    <div class="text-primary">In-Progress ({{ progress.progress }}%)</div>
+                                {% endif %}
+                            {% else %}
+                                <div class="text-secondary">Pending</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-2">
+                            {% small_heading 'Tabel' %}
+                            {% dataset_tabel_judge_progress dataset object as progress %}
+                            {% if progress %}
+                                {% if progress.is_finished %}
+                                    <div class="text-success">Completed</div>
+                                {% else %}
+                                    <div class="text-primary">In-Progress ({{ progress.progress }}%)</div>
+                                {% endif %}
+                            {% else %}
+                                <div class="text-secondary">Pending</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                </div>
+            {% endfor %}
+        </div>
+        {% comment %} Pagination {% endcomment %}
+        <div class="d-none d-md-block">{% pagination page_obj %}</div>
+        <div class="d-block d-md-none">{% pagination_small page_obj %}</div>
+
+    </div>
+{% endblock content %}
