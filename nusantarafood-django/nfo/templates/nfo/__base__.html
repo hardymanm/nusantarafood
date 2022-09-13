@@ -10,8 +10,8 @@
 {# Display django.contrib.messages as Bootstrap alerts #}
 {% bootstrap_messages %}
 
-{% block bootstrap5_content %}
 {% block bootstrap5_title %}Nusantara Food Ontology{% endblock bootstrap5_title %}
+{% block bootstrap5_content %}
     {% include 'nfo/__navbar__.html' %}
     {% block content %}{% endblock content %}
 {% endblock bootstrap5_content %}
