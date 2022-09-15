@@ -18,7 +18,7 @@
                     {% nav_item request 'Login' '/accounts/login' '' %}
                 {% else %}
                     {% if request.user.is_staff %}
-                        {% nav_item request 'Manage Dataset' '/manage/dataset' '^/dataset.*$' %}
+                        {% nav_item request 'Manage Dataset' '/manage/dataset' '^/manage/dataset.*$' %}
                         {% nav_item request 'Manage Judge' '/manage/judge' '^/manage/judge.*$' %}
                         {% nav_item request 'Admin Page' '/admin' '' %}
                     {% endif %}
