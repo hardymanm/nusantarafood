@@ -35,9 +35,9 @@
                             {% dataset_wordnet_judge_progress dataset object as progress %}
                             {% if progress %}
                                 {% if progress.is_finished %}
-                                    <div class="text-success">Completed</div>
+                                    <div><span class="text-white bg-success">Completed</span></div>
                                 {% else %}
-                                    <div class="text-primary">In-Progress ({{ progress.progress }}%)</div>
+                                    <div><span class="bg-warning">In-Progress ({{ progress.progress }}%)</span></div>
                                 {% endif %}
                             {% else %}
                                 <div class="text-secondary">Pending</div>
@@ -48,9 +48,9 @@
                             {% dataset_wiki_judge_progress dataset object as progress %}
                             {% if progress %}
                                 {% if progress.is_finished %}
-                                    <div class="text-success">Completed</div>
+                                    <div><span class="text-white bg-success">Completed</span></div>
                                 {% else %}
-                                    <div class="text-primary">In-Progress ({{ progress.progress }}%)</div>
+                                    <div><span class="bg-warning">In-Progress ({{ progress.progress }}%)</span></div>
                                 {% endif %}
                             {% else %}
                                 <div class="text-secondary">Pending</div>
@@ -61,9 +61,9 @@
                             {% dataset_tabel_judge_progress dataset object as progress %}
                             {% if progress %}
                                 {% if progress.is_finished %}
-                                    <div class="text-success">Completed</div>
+                                    <div><span class="text-white bg-success">Completed</span></div>
                                 {% else %}
-                                    <div class="text-primary">In-Progress ({{ progress.progress }}%)</div>
+                                    <div><span class="bg-warning">In-Progress ({{ progress.progress }}%)</span></div>
                                 {% endif %}
                             {% else %}
                                 <div class="text-secondary">Pending</div>
