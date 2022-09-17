@@ -1,8 +1,15 @@
 from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework import permissions
+from rest_framework import pagination
 
 from nfo import serializers, models
+
+
+class StandardResultsSetPagination(pagination.PageNumberPagination):
+    page_size = 100
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
 
 
 class StopwordViewSet(viewsets.ModelViewSet):
@@ -21,6 +28,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
     queryset = models.Dataset.objects.all()
     serializer_class = serializers.DatasetSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
 
 
 class DocumentViewSet(viewsets.ModelViewSet):
