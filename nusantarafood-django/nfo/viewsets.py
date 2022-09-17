@@ -7,7 +7,7 @@ from nfo import serializers, models
 
 
 class StandardResultsSetPagination(pagination.PageNumberPagination):
-    page_size = 100
+    page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 1000
 
@@ -35,6 +35,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
     queryset = models.Document.objects.all()
     serializer_class = serializers.DocumentSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
 
 
 class FoodCategoryViewSet(viewsets.ModelViewSet):
