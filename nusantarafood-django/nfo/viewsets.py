@@ -9,7 +9,7 @@ from nfo import serializers, models
 class StandardResultsSetPagination(pagination.PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
-    max_page_size = 1000
+    max_page_size = 10000
 
 
 class StopwordViewSet(viewsets.ModelViewSet):
