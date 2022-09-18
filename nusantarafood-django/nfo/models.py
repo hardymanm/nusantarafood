@@ -74,7 +74,7 @@ class Document(models.Model):
 
 class FoodCategory(models.Model):
     name = models.CharField(max_length=255)
-    created_by = models.ForeignKey('auth.User', null=True, on_delete=models.SET_NULL)
+    name_en = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
