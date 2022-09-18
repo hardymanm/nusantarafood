@@ -74,7 +74,7 @@ class ManageDatasetDetail(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['object'] = models.Dataset.objects.get(pk=self.kwargs['pk'])
         context['rename_form'] = forms.RenameDatasetForm(instance=context['object'])
-        context['split_form'] = forms.SplitDatasetForm(instance=context['object'])
+        context['split_form'] = forms.SplitDatasetForm(instance=context['object'], initial={'name': '{}_part'.format(context['object'].name)})
         context['join_form'] = forms.JoinDatasetForm()
         return context
 
@@ -103,8 +103,8 @@ def split_dataset(request, pk):
     if request.method == 'POST':
         form = forms.SplitDatasetForm(request.POST, instance=instance)
         if form.is_valid():
-            size = form.cleaned_data.get('size')
             name = form.cleaned_data.get('name')
+            size = form.cleaned_data.get('size')
 
             with transaction.atomic():
                 new_dataset = models.Dataset.objects.create(name=name)
