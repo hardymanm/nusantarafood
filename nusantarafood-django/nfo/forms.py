@@ -5,6 +5,12 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm
 
 
+class RenameDatasetForm(forms.ModelForm):
+    class Meta:
+        model = models.Dataset
+        fields = ['name']
+
+
 class WordnetAnswerForm(forms.ModelForm):
     class Meta:
         model = models.WordnetAnswer

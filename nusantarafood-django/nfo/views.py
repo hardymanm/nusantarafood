@@ -71,6 +71,7 @@ class ManageDatasetDetail(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['object'] = models.Dataset.objects.get(pk=self.kwargs['pk'])
+        context['rename_form'] = forms.RenameDatasetForm(initial={'name': context['object'].name})
         return context
 
 
@@ -78,6 +79,15 @@ class ManageDatasetDelete(LoginRequiredMixin, DeleteView):
     model = models.Dataset
     success_url = reverse_lazy('manage-dataset-list')
     template_name = 'nfo/manage_dataset/delete.html'
+
+
+def rename_dataset(request, pk):
+    if request.method == 'POST':
+        form = forms.RenameDatasetForm(request.POST)
+        if form.is_valid():
+            form.save()
+
+    return redirect('manage-dataset-detail', pk=pk)
 
 
 def upload_dataset(request):

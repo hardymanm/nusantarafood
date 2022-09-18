@@ -1,9 +1,82 @@
 {% extends "nfo/__base__.html" %}
+{% load django_bootstrap5 %}
 {% load pagination %}
 {% load nfosnippet %}
 {% load dataset %}
 {% block content %}
     <div class="container-xxl">
+
+        {# Rename dataset modal #}
+        <div class="modal fade" id="renameFormModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="renameFormLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form action="{% url 'manage-dataset-rename' object.pk %}" method="post">
+                        {% csrf_token %}
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="splitFormLabel">Rename Dataset</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            {% bootstrap_form rename_form %}
+
+                        </div>
+                        <div class="modal-footer">
+                            <input type="hidden" value="Confirm">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            {% bootstrap_button button_type="submit" content="Submit" %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {# Split dataset modal #}
+        <div class="modal fade" id="splitFormModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="splitFormLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form action="{% url 'manage-dataset-delete' object.pk %}" method="post">
+                        {% csrf_token %}
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="splitFormLabel">Split Dataset</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+
+                        </div>
+                        <div class="modal-footer">
+                            <input type="hidden" value="Confirm">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-secondary">Confirm</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+        {# Join dataset modal #}
+        <div class="modal fade" id="joinFormModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="joinFormLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form action="{% url 'manage-dataset-delete' object.pk %}" method="post">
+                        {% csrf_token %}
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="splitFormLabel">Join Dataset</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+
+                        </div>
+                        <div class="modal-footer">
+                            <input type="hidden" value="Confirm">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-secondary">Confirm</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
 
         {# Delete dataset modal #}
         <div class="modal fade" id="deleteFormModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="deleteFormLabel" aria-hidden="true">
@@ -28,6 +101,7 @@
             </div>
         </div>
 
+
         {# Breadcrumb #}
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
@@ -45,6 +119,16 @@
         <div class="card mb-3">
             <div class="card-body">
                 <div class="fw-bold mb-3">{{ object.name }}</div>
+                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#renameFormModal">
+                    Rename
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#splitFormModal">
+                    Split
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#joinFormModal">
+                    Join
+                </button>
+
                 <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteFormModal">
                     Delete
                 </button>
@@ -76,7 +160,7 @@
                                 {% for category in document.generated_categories.all %}
                                     {% if not forloop.first %},{% endif %}
                                     {{ category.name }}
-                                {% empty %}
+                                    {% empty %}
                                     <span class="opacity-25">None</span>
                                 {% endfor %}
                             </div>

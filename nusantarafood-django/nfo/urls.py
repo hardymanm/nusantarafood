@@ -24,6 +24,7 @@ urlpatterns = [
     path('manage/dataset', views.ManageDatasetList.as_view(), name='manage-dataset-list'),
     path('manage/dataset/<int:pk>', views.ManageDatasetDetail.as_view(), name='manage-dataset-detail'),
     path('manage/dataset/<int:pk>/delete', views.ManageDatasetDelete.as_view(), name='manage-dataset-delete'),
+    path('manage/dataset/<int:pk>/rename', views.rename_dataset, name='manage-dataset-rename'),
     path('manage/dataset/upload', views.upload_dataset, name='manage-dataset-upload'),
     path('manage/dataset/wiki/upload', views.upload_dataset_wiki, name='manage-dataset-wiki-upload'),
     path('manage/dataset/lda/upload', views.upload_dataset_lda, name='manage-dataset-lda-upload'),
