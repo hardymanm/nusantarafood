@@ -26,6 +26,7 @@ urlpatterns = [
     path('manage/dataset/<int:pk>/delete', views.ManageDatasetDelete.as_view(), name='manage-dataset-delete'),
     path('manage/dataset/<int:pk>/rename', views.rename_dataset, name='manage-dataset-rename'),
     path('manage/dataset/<int:pk>/split', views.split_dataset, name='manage-dataset-split'),
+    path('manage/dataset/<int:pk>/join', views.join_dataset, name='manage-dataset-join'),
     path('manage/dataset/upload', views.upload_dataset, name='manage-dataset-upload'),
     path('manage/dataset/wiki/upload', views.upload_dataset_wiki, name='manage-dataset-wiki-upload'),
     path('manage/dataset/lda/upload', views.upload_dataset_lda, name='manage-dataset-lda-upload'),

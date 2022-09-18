@@ -32,6 +32,10 @@ class SplitDatasetForm(forms.ModelForm):
         return cleaned_data
 
 
+class JoinDatasetForm(forms.Form):
+    datasets = forms.ModelMultipleChoiceField(queryset=models.Dataset.objects.order_by('name').all())
+
+
 class WordnetAnswerForm(forms.ModelForm):
     class Meta:
         model = models.WordnetAnswer

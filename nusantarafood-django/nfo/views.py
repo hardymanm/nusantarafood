@@ -75,6 +75,7 @@ class ManageDatasetDetail(LoginRequiredMixin, ListView):
         context['object'] = models.Dataset.objects.get(pk=self.kwargs['pk'])
         context['rename_form'] = forms.RenameDatasetForm(instance=context['object'])
         context['split_form'] = forms.SplitDatasetForm(instance=context['object'])
+        context['join_form'] = forms.JoinDatasetForm()
         return context
 
 
@@ -108,6 +109,32 @@ def split_dataset(request, pk):
                 for document in documents:
                     document.dataset = new_dataset
                 models.Document.objects.bulk_update(documents, ['dataset'])
+
+        else:
+            messages.error(request, error_as_ul(form.errors))
+
+    return redirect('manage-dataset-detail', pk=pk)
+
+
+def join_dataset(request, pk):
+    instance = models.Dataset.objects.get(pk=pk)
+    if request.method == 'POST':
+        form = forms.JoinDatasetForm(request.POST)
+        if form.is_valid():
+            datasets = form.cleaned_data.get('datasets')
+
+            with transaction.atomic():
+                documents = []
+                for dataset in datasets:
+                    documents += dataset.document_set.all()[:]
+
+                for document in documents:
+                    document.dataset = instance
+
+                models.Document.objects.bulk_update(documents, ['dataset'])
+
+                for dataset in datasets:
+                    dataset.delete()
 
         else:
             messages.error(request, error_as_ul(form.errors))

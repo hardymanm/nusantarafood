@@ -56,19 +56,18 @@
         <div class="modal fade" id="joinFormModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="joinFormLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <form action="{% url 'manage-dataset-delete' object.pk %}" method="post">
+                    <form action="{% url 'manage-dataset-join' object.pk %}" method="post">
                         {% csrf_token %}
                         <div class="modal-header">
                             <h5 class="modal-title" id="splitFormLabel">Join Dataset</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-
+                            {% bootstrap_form join_form %}
                         </div>
                         <div class="modal-footer">
-                            <input type="hidden" value="Confirm">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-secondary">Confirm</button>
+                            {% bootstrap_button button_type="submit" content="Submit" %}
                         </div>
                     </form>
                 </div>
@@ -184,4 +183,16 @@
         <div class="d-block d-md-none">{% pagination_small page_obj %}</div>
 
     </div>
+
+    <script>
+        const excludeId = {{ object.id }};
+
+        const selectDatasets = document.getElementById('id_datasets');
+        for (let i = 0; i < selectDatasets.length; i++) {
+            if (selectDatasets.options[i].value == excludeId) {
+                selectDatasets.remove(i);
+            }
+        }
+    </script>
+
 {% endblock content %}
