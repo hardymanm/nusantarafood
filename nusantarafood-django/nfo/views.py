@@ -92,6 +92,9 @@ def rename_dataset(request, pk):
         if form.is_valid():
             form.save()
 
+        else:
+            messages.error(request, error_as_ul(form.errors))
+
     return redirect('manage-dataset-detail', pk=pk)
 
 
@@ -354,13 +357,9 @@ def update_judge_item_context(view, context):
 
     if view.method == models.METHOD_WORDNET:
         context['answer'] = models.WordnetAnswer.objects.filter(word=context['object'], judge=view.request.user).first()
-    elif view.method == models.METHOD_WIKI:
+    elif view.method in [models.METHOD_WIKI, models.METHOD_TABEL]:
         context['categories'] = models.FoodCategory.objects.order_by('name').all()
         context['answer'] = models.WikiAnswer.objects.filter(document=context['object'], judge=view.request.user).first()
-        context['form'] = forms.TabelAnswerForm({'correct_categories': get_correct_categories(context['answer'])})
-    elif view.method == models.METHOD_TABEL:
-        context['categories'] = models.FoodCategory.objects.order_by('name').all()
-        context['answer'] = models.TabelAnswer.objects.filter(document=context['object'], judge=view.request.user).first()
         context['form'] = forms.TabelAnswerForm({'correct_categories': get_correct_categories(context['answer'])})
 
     return context
