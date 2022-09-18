@@ -138,10 +138,9 @@ class WordnetAnswer(AnswerMixin):
 
 class WikiAnswer(AnswerMixin):
     document = models.ForeignKey('nfo.Document', on_delete=models.CASCADE)
-    suggested_categories = models.TextField(null=True, blank=True)
+    correct_categories = models.ManyToManyField('nfo.FoodCategory', related_name='wiki_answer', related_query_name='wiki_answer', blank=True)
 
 
 class TabelAnswer(AnswerMixin):
     document = models.ForeignKey('nfo.Document', on_delete=models.CASCADE)
-    correct_categories = models.ManyToManyField('nfo.FoodCategory', related_name='correct_categories', related_query_name='correct_category', blank=True)
-    suggested_categories = models.TextField(null=True, blank=True)
+    correct_categories = models.ManyToManyField('nfo.FoodCategory', related_name='tabel_answer', related_query_name='tabel_answer', blank=True)
