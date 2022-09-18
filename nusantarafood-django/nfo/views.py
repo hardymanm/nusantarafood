@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import ListView, DetailView, DeleteView
+from django.contrib import messages
 
 from nfo import models, forms
 from nfo.utils.dataset_utils import DatasetUtils
@@ -94,16 +95,24 @@ def rename_dataset(request, pk):
 
 
 def split_dataset(request, pk):
-    instance = models.Dataset.object.get(pk=pk)
+    instance = models.Dataset.objects.get(pk=pk)
     if request.method == 'POST':
         form = forms.SplitDatasetForm(request.POST, instance=instance)
         if form.is_valid():
             size = form.cleaned_data.get('size')
             name = form.cleaned_data.get('name')
-            
-            # @todo: create new dataset and assign documents
-            
 
+            with transaction.atomic():
+                new_dataset = models.Dataset.objects.create(name=name)
+                documents = instance.document_set.order_by('pk')[:size]
+                for document in documents:
+                    document.dataset = new_dataset
+                models.Document.objects.bulk_update(documents, ['dataset'])
+
+        else:
+            messages.error(request, error_as_ul(form.errors))
+
+    return redirect('manage-dataset-detail', pk=pk)
 
 
 def upload_dataset(request):
@@ -355,3 +364,12 @@ def get_correct_categories(answer):
         return [c.pk for c in answer.correct_categories.all()]
     else:
         return []
+
+
+def error_as_ul(form_errors):
+    html = '<ul class="mb-0">'
+    for key, errors in form_errors.items():
+        for error in errors:
+            html += '<li>{}</li>'.format(error)
+    html += '</ul>'
+    return html
