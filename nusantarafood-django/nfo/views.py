@@ -113,6 +113,9 @@ def split_dataset(request, pk):
                     document.dataset = new_dataset
                 models.Document.objects.bulk_update(documents, ['dataset'])
 
+                delete_related_judge_sessions(instance)
+                delete_related_answers(instance)
+
         else:
             messages.error(request, error_as_ul(form.errors))
 
@@ -129,6 +132,8 @@ def join_dataset(request, pk):
             with transaction.atomic():
                 documents = []
                 for dataset in datasets:
+                    delete_related_judge_sessions(dataset)
+                    delete_related_answers(dataset)
                     documents += dataset.document_set.all()[:]
 
                 for document in documents:
@@ -399,3 +404,13 @@ def error_as_ul(form_errors):
             html += '<li>{}</li>'.format(error)
     html += '</ul>'
     return html
+
+
+def delete_related_judge_sessions(dataset):
+    models.JudgeSession.objects.filter(dataset=dataset).delete()
+
+
+def delete_related_answers(dataset):
+    models.WordnetAnswer.objects.filter(dataset=dataset).delete()
+    models.WikiAnswer.objects.filter(dataset=dataset).delete()
+    models.TabelAnswer.objects.filter(dataset=dataset).delete()
