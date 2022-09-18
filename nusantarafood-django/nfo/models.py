@@ -48,6 +48,27 @@ class Dataset(models.Model):
     def __str__(self):
         return self.name
 
+    # @todo: keep the document count but limit documents obj with [:100] for visualization
+    def get_tabel_ontology(self):
+        context = {'food_categories': [], 'documents': Document.objects.filter(tabelanswer__dataset=self)}
+
+        categories = FoodCategory.objects.all()
+        for category in categories:
+            documents = Document.objects.filter(tabelanswer__dataset=self, tabelanswer__correct_categories=category).all()
+            context['food_categories'].append({'pk': category.pk, 'name': category.name_en, 'documents': [{'pk': document.pk, 'title': document.title} for document in documents]})
+
+        return context
+
+    def get_wiki_ontology(self):
+        context = {'food_categories': [], 'documents': Document.objects.filter(wikianswer__dataset=self)}
+
+        categories = FoodCategory.objects.all()
+        for category in categories:
+            documents = Document.objects.filter(wikianswer__dataset=self, wikianswer__correct_categories=category).all()
+            context['food_categories'].append({'pk': category.pk, 'name': category.name_en, 'documents': [{'pk': document.pk, 'title': document.title} for document in documents]})
+
+        return context
+
 
 class Document(models.Model):
     dataset = models.ForeignKey('nfo.Dataset', on_delete=models.CASCADE)

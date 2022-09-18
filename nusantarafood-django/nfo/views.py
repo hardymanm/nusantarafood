@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.db.models import Count
@@ -83,6 +84,57 @@ class ManageDatasetDelete(LoginRequiredMixin, DeleteView):
     model = models.Dataset
     success_url = reverse_lazy('manage-dataset-list')
     template_name = 'nfo/manage_dataset/delete.html'
+
+
+class ManageDatasetLda(LoginRequiredMixin, DetailView):
+    model = models.Dataset
+    template_name = 'nfo/manage_dataset/lda.html'
+
+
+class ManageDatasetWordnetOntology(LoginRequiredMixin, DetailView):
+    model = models.Dataset
+    template_name = 'nfo/manage_dataset/ontology.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'Wordnet Ontology'
+        return context
+
+
+class ManageDatasetWikiOntology(LoginRequiredMixin, DetailView):
+    model = models.Dataset
+    template_name = 'nfo/manage_dataset/ontology.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(self.object.get_wiki_ontology())
+        context['page_title'] = 'Wiki Ontology'
+        return context
+
+
+class ManageDatasetTabelOntology(LoginRequiredMixin, DetailView):
+    model = models.Dataset
+    template_name = 'nfo/manage_dataset/ontology.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(self.object.get_tabel_ontology())
+        context['page_title'] = 'Tabel 1981 Ontology'
+        return context
+
+
+def download_wordnet_ontology_json(request, pk):
+    pass
+
+
+def download_wiki_ontology_json(request, pk):
+    documents = models.Document.objects.filter(dataset__id=pk).prefetch_related('wikianswer_set__correct_categories')
+    return JsonResponse([document_to_dict(d, models.METHOD_WIKI) for d in documents], safe=False)
+
+
+def download_tabel_ontology_json(request, pk):
+    documents = models.Document.objects.filter(dataset__id=pk).prefetch_related('tabelanswer_set__correct_categories')
+    return JsonResponse([document_to_dict(d, models.METHOD_TABEL) for d in documents], safe=False)
 
 
 def rename_dataset(request, pk):
@@ -414,3 +466,18 @@ def delete_related_answers(dataset):
     models.WordnetAnswer.objects.filter(dataset=dataset).delete()
     models.WikiAnswer.objects.filter(dataset=dataset).delete()
     models.TabelAnswer.objects.filter(dataset=dataset).delete()
+
+
+def document_to_dict(document, method):
+    if method == models.METHOD_WIKI:
+        categories = models.FoodCategory.objects.filter(wiki_answer__document=document).all()
+    elif method == models.METHOD_TABEL:
+        categories = models.FoodCategory.objects.filter(tabel_answer__document=document).all()
+    else:
+        categories = []
+
+    return {
+        'title': document.title,
+        'title_clean': document.title_clean,
+        'categories': [c.name_en for c in categories]
+    }

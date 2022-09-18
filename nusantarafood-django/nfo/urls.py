@@ -27,6 +27,15 @@ urlpatterns = [
     path('manage/dataset/<int:pk>/rename', views.rename_dataset, name='manage-dataset-rename'),
     path('manage/dataset/<int:pk>/split', views.split_dataset, name='manage-dataset-split'),
     path('manage/dataset/<int:pk>/join', views.join_dataset, name='manage-dataset-join'),
+    path('manage/dataset/<int:pk>/lda', views.ManageDatasetLda.as_view(), name='manage-dataset-lda-vis'),
+    path('manage/dataset/<int:pk>/ontology/wordnet', views.ManageDatasetWordnetOntology.as_view(), name='manage-dataset-wordnet-ontology'),
+    path('manage/dataset/<int:pk>/ontology/wiki', views.ManageDatasetWikiOntology.as_view(), name='manage-dataset-wiki-ontology'),
+    path('manage/dataset/<int:pk>/ontology/tabel', views.ManageDatasetTabelOntology.as_view(), name='manage-dataset-tabel-ontology'),
+
+    path('manage/dataset/<int:pk>/ontology/wordnet/json', views.download_wordnet_ontology_json, name='manage-dataset-wordnet-ontology-json'),
+    path('manage/dataset/<int:pk>/ontology/wiki/json', views.download_wiki_ontology_json, name='manage-dataset-wiki-ontology-json'),
+    path('manage/dataset/<int:pk>/ontology/tabel/json', views.download_tabel_ontology_json, name='manage-dataset-tabel-ontology-json'),
+
     path('manage/dataset/upload', views.upload_dataset, name='manage-dataset-upload'),
     path('manage/dataset/wiki/upload', views.upload_dataset_wiki, name='manage-dataset-wiki-upload'),
     path('manage/dataset/lda/upload', views.upload_dataset_lda, name='manage-dataset-lda-upload'),

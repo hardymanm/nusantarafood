@@ -133,19 +133,53 @@
         <div class="card mb-3">
             <div class="card-body">
                 <div class="fw-bold mb-3">{{ object.name }}</div>
-                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#renameFormModal">
-                    Rename
-                </button>
-                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#splitFormModal">
-                    Split
-                </button>
-                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#joinFormModal">
-                    Join
-                </button>
 
-                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteFormModal">
-                    Delete
-                </button>
+                <div class="row">
+                    <div class="col-12 col-md-4 mb-2 mb-md-0">
+                        {% small_heading 'Ontology' %}
+                        <div class="btn-group mt-2">
+                            <a href="{% url 'manage-dataset-wordnet-ontology' object.pk %}" class="btn btn-light border">Wordnet</a>
+                            <a href="{% url 'manage-dataset-wiki-ontology' object.pk %}" class="btn btn-light border">Wiki</a>
+                            <a href="{% url 'manage-dataset-tabel-ontology' object.pk %}" class="btn btn-light border">Tabel 1981</a>
+                        </div>
+
+                        <div class="dropdown d-inline-block">
+                            <button class="btn btn-light border dropdown-toggle mt-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Download
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'manage-dataset-wordnet-ontology-json' object.pk %}">Wordnet</a></li>
+                                <li><a class="dropdown-item" href="{% url 'manage-dataset-wiki-ontology-json' object.pk %}">Wiki</a></li>
+                                <li><a class="dropdown-item" href="{% url 'manage-dataset-tabel-ontology-json' object.pk %}">Tabel 1981</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-5 mb-2 mb-md-0">
+                        {% small_heading 'LDA model' %}
+                        <a href="{% url 'manage-dataset-wordnet-ontology' object.pk %}" class="btn btn-light border mt-2">View</a>
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        {% small_heading 'Dataset Actions' %}
+                        <div class="btn-group mt-2">
+                            <button type="button" class="btn btn-light border" data-bs-toggle="modal" data-bs-target="#renameFormModal">
+                                Rename
+                            </button>
+                            <button type="button" class="btn btn-light border" data-bs-toggle="modal" data-bs-target="#splitFormModal">
+                                Split
+                            </button>
+                            <button type="button" class="btn btn-light border" data-bs-toggle="modal" data-bs-target="#joinFormModal">
+                                Join
+                            </button>
+                        </div>
+
+                        <button type="button" class="btn btn-danger mt-2" data-bs-toggle="modal" data-bs-target="#deleteFormModal">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
 

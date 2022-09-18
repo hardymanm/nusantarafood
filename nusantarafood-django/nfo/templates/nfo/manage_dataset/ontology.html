@@ -1,0 +1,66 @@
+{% extends "nfo/__base__.html" %}
+{% block content %}
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+    <div class="container-xxl">
+        {# Breadcrumb #}
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'home' %}">Home</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'manage-dataset-list' %}">Manage Dataset</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'manage-dataset-detail' object.pk %}">{{ object.name }}</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-body">
+                <div id="mynetwork" style="width: 100%; height: 100vh"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="text/javascript">
+        // create an array with nodes
+        var nodes = new vis.DataSet([
+            {id: 'root', label: 'Recipe', color: '#1A237E', font: '16px arial white', shape: 'circle'},
+            {% for category in food_categories %}
+                {id: 'fc-{{ category.pk }}', label: '{{ category.name }} ({{ category.documents|length }})', shape: 'box', color: '#5C6BC0', font: '14px arial white'},
+            {% endfor %}
+            {% for document in documents %}
+                {id: 'd-{{ document.pk }}', label: '{{ document.title_clean }}', shape: 'box', color: '#A5D6A7', font: '12px arial #1B5E20'},
+            {% endfor %}
+        ]);
+
+        // create an array with edges
+        var edges = new vis.DataSet([
+            {% for category in food_categories %}
+                {from: 'root', to: 'fc-{{ category.pk }}'},
+                {% for document in category.documents %}
+                    {from: 'fc-{{ category.pk }}', to: 'd-{{ document.pk }}'},
+                {% endfor %}
+            {% endfor %}
+        ]);
+
+        // create a network
+        var container = document.getElementById('mynetwork');
+
+        // provide the data in the vis format
+        var data = {
+            nodes: nodes,
+            edges: edges
+        };
+        var options = {};
+
+        // initialize your network!
+        var network = new vis.Network(container, data, options);
+    </script>
+
+{% endblock content %}
