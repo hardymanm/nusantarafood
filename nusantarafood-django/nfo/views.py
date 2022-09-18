@@ -1,6 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.db.models import Count
+from django.db import transaction
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -71,7 +72,8 @@ class ManageDatasetDetail(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['object'] = models.Dataset.objects.get(pk=self.kwargs['pk'])
-        context['rename_form'] = forms.RenameDatasetForm(initial={'name': context['object'].name})
+        context['rename_form'] = forms.RenameDatasetForm(instance=context['object'])
+        context['split_form'] = forms.SplitDatasetForm(instance=context['object'])
         return context
 
 
@@ -82,12 +84,26 @@ class ManageDatasetDelete(LoginRequiredMixin, DeleteView):
 
 
 def rename_dataset(request, pk):
+    instance = models.Dataset.objects.get(pk=pk)
     if request.method == 'POST':
-        form = forms.RenameDatasetForm(request.POST)
+        form = forms.RenameDatasetForm(request.POST, instance=instance)
         if form.is_valid():
             form.save()
 
     return redirect('manage-dataset-detail', pk=pk)
+
+
+def split_dataset(request, pk):
+    instance = models.Dataset.object.get(pk=pk)
+    if request.method == 'POST':
+        form = forms.SplitDatasetForm(request.POST, instance=instance)
+        if form.is_valid():
+            size = form.cleaned_data.get('size')
+            name = form.cleaned_data.get('name')
+            
+            # @todo: create new dataset and assign documents
+            
+
 
 
 def upload_dataset(request):
