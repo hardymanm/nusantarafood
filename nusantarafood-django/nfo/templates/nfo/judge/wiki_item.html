@@ -34,23 +34,11 @@
             </div>
             <div class="mb-4">
                 <label for="text-input" class="form-label">Please suggest categories from the given title and description:</label>
-
-                <div class="row">
-                    {% for category in categories %}
-                    <div class="col-6 col-md-3 d-grid mb-2">
-                        <button class="btn btn-light border text-start"
-                                type="button"
-                                onClick="toggleCategory(this, {{ category.pk }})">
-                            <span style="width: 1.5em;
-                                         display: inline-block;"
-                                  class="category-{{ category.pk }}-span"></span>
-                            {{ category.name }}
-                        </button>
-                    </div>
-                    {% endfor %}
-                </div>
-
-                <div class="d-none">{{ form.visible_fields.1 }}</div>
+                <input type="text"
+                       class="form-control"
+                       id="text-input"
+                       name="suggested_categories"
+                       value="{{ answer.suggested_categories|default:'' }}"/>
                 <input type="hidden" value="{{ object.pk }}" name="document" />
                 {% if page_obj.has_next %}
                 <input type="hidden" value="{% url 'judge-wiki-item' dataset.pk %}?page={{ page_obj.next_page_number }}" name="next_url" id="next-url" />

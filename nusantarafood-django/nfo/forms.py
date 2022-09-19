@@ -45,13 +45,13 @@ class WordnetAnswerForm(forms.ModelForm):
 class WikiAnswerForm(forms.ModelForm):
     class Meta:
         model = models.WikiAnswer
-        fields = ['document', 'correct_categories']
+        fields = ['document', 'suggested_categories']
 
 
 class TabelAnswerForm(forms.ModelForm):
     class Meta:
         model = models.TabelAnswer
-        fields = ['document', 'correct_categories']
+        fields = ['document', 'correct_categories', 'suggested_categories']
 
 
 class UploadDatasetForm(forms.Form):

@@ -27,30 +27,18 @@
                             onClick="toggleCategory(this, {{ category.pk }})">
                         <span style="width: 1.5em;
                                      display: inline-block;"
-                              class="category-{{ category.pk }}-span"></span>
+                              id="category-{{ category.pk }}-span"></span>
                         {{ category.name }}
                     </button>
                 {% endfor %}
             </div>
             <div class="mb-4">
                 <label for="text-input" class="form-label">Please suggest categories from the given title and description:</label>
-
-
-                <div class="row">
-                    {% for category in categories %}
-                    <div class="col-6 col-md-3 d-grid mb-2">
-                        <button class="btn btn-light border text-start"
-                                type="button"
-                                onClick="toggleCategory(this, {{ category.pk }})">
-                            <span style="width: 1.5em;
-                                         display: inline-block;"
-                                  class="category-{{ category.pk }}-span"></span>
-                            {{ category.name }}
-                        </button>
-                    </div>
-                    {% endfor %}
-                </div>
-
+                <input type="text"
+                       class="form-control"
+                       id="text-input"
+                       name="suggested_categories"
+                       value="{{ answer.suggested_categories|default:'' }}"/>
                 <input type="hidden" value="{{ object.pk }}" name="document" />
                 <div class="d-none">{{ form.visible_fields.1 }}</div>
                 {% if page_obj.has_next %}
@@ -95,10 +83,11 @@
         window.addEventListener('load', function () {
             for(let i=0; i<options.length; i++) {
                 const option = options[i];
+                const span = getSpanByPk(option.value)
                 if(option.selected) {
-                    showTick(option.value);
+                    showTick(span);
                 } else {
-                    removeTick(option.value)
+                    removeTick(span)
                 }
             }
         }, false);
@@ -106,10 +95,10 @@
         function toggleCategory(el, pk) {
             const span = el.getElementsByTagName('span')[0];
             if(span.innerHTML.length > 0) {
-                removeTick(pk)
+                removeTick(span)
                 setSelected(pk, false);
             } else {
-                showTick(pk);
+                showTick(span);
                 setSelected(pk, true);
             }
         }
@@ -122,22 +111,20 @@
             }
         }
 
-        function showTick(pk) {
-            const span = getSpanByPk(pk)
-            span.forEach(el => {
-                el.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/></svg>'
-            })
+        function showTick(span) {
+            if(span) {
+                span.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/></svg>'
+            }
         }
 
-        function removeTick(pk) {
-            const span = getSpanByPk(pk)
-            span.forEach(el => {
-                el.innerHTML = '';
-            })
+        function removeTick(span) {
+            if(span) {
+                span.innerHTML = '';
+            }
         }
 
         function getSpanByPk(pk) {
-            return Array.from(document.getElementsByClassName(`category-${pk}-span`));
+            return document.getElementById(`category-${pk}-span`);
         }
 
     </script>

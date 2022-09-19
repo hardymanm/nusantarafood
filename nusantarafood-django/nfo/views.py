@@ -388,7 +388,7 @@ def update_wiki_answer(request, pk):
         if form.is_valid():
             document = models.Document.objects.get(pk=pk)
             answer, _ = models.WikiAnswer.objects.get_or_create(document=document, judge=request.user, dataset=document.dataset)
-            answer.correct_categories.set(form.cleaned_data['correct_categories'])
+            answer.suggested_categories = form.cleaned_data['suggested_categories']
             answer.save()
             return redirect(next_url)
 
@@ -401,6 +401,7 @@ def update_tabel_answer(request, pk):
             document = models.Document.objects.get(pk=pk)
             answer, _ = models.TabelAnswer.objects.get_or_create(document=document, judge=request.user, dataset=document.dataset)
             answer.correct_categories.set(form.cleaned_data['correct_categories'])
+            answer.suggested_categories = form.cleaned_data['suggested_categories']
             answer.save()
             return redirect(next_url)
 
@@ -414,9 +415,13 @@ def update_judge_item_context(view, context):
 
     if view.method == models.METHOD_WORDNET:
         context['answer'] = models.WordnetAnswer.objects.filter(word=context['object'], judge=view.request.user).first()
-    elif view.method in [models.METHOD_WIKI, models.METHOD_TABEL]:
+    elif view.method == models.METHOD_WIKI:
         context['categories'] = models.FoodCategory.objects.order_by('name').all()
         context['answer'] = models.WikiAnswer.objects.filter(document=context['object'], judge=view.request.user).first()
+        context['form'] = forms.WikiAnswerForm()
+    elif view.method == models.METHOD_TABEL:
+        context['categories'] = models.FoodCategory.objects.order_by('name').all()
+        context['answer'] = models.TabelAnswer.objects.filter(document=context['object'], judge=view.request.user).first()
         context['form'] = forms.TabelAnswerForm({'correct_categories': get_correct_categories(context['answer'])})
 
     return context
