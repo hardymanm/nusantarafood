@@ -7,7 +7,7 @@ METHOD_WIKI = 'wiki'
 METHOD_TABEL = 'tabel'
 
 
-class Stopword(models.Model):
+class TokenList(models.Model):
     name = models.CharField(max_length=255)
     description = models.CharField(max_length=255, null=True, blank=True)
     content = models.TextField(blank=True, default='')

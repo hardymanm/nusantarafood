@@ -4,7 +4,7 @@ from rest_framework import routers
 from nfo import viewsets, views
 
 router = routers.DefaultRouter()
-router.register(r'stopwords', viewsets.StopwordViewSet)
+router.register(r'tokenlist', viewsets.TokenListViewSet)
 router.register(r'tabels', viewsets.TabelViewSet)
 router.register(r'datasets', viewsets.DatasetViewSet)
 router.register(r'documents', viewsets.DocumentViewSet)

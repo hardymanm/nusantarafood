@@ -12,9 +12,9 @@ class StandardResultsSetPagination(pagination.PageNumberPagination):
     max_page_size = 10000
 
 
-class StopwordViewSet(viewsets.ModelViewSet):
-    queryset = models.Stopword.objects.all()
-    serializer_class = serializers.StopwordSerializer
+class TokenListViewSet(viewsets.ModelViewSet):
+    queryset = models.TokenList.objects.all()
+    serializer_class = serializers.TokenListSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 

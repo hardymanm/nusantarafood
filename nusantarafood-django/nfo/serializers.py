@@ -3,9 +3,9 @@ from rest_framework import serializers
 from nfo import models
 
 
-class StopwordSerializer(QueryFieldsMixin, serializers.ModelSerializer):
+class TokenListSerializer(QueryFieldsMixin, serializers.ModelSerializer):
     class Meta:
-        model = models.Stopword
+        model = models.TokenList
         fields = '__all__'
 
 

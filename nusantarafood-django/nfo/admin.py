@@ -3,7 +3,7 @@ from django.contrib import admin
 from nfo import models
 
 # Register your models here.
-admin.site.register(models.Stopword)
+admin.site.register(models.TokenList)
 admin.site.register(models.Tabel)
 admin.site.register(models.Dataset)
 admin.site.register(models.Document)
