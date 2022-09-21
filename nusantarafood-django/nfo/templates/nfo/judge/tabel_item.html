@@ -1,10 +1,10 @@
 {% extends "nfo/judge/__base__.html" %}
+{% load django_bootstrap5 %}
 {% block content %}
     <div class="container pb-5">
         <form method="post"
               id="form"
               action="{% url 'judge-tabel-answer' object.pk %}">
-            {% csrf_token %}
             <div class="progress" style="height: 6px;">
                 <div class="progress-bar"
                      role="progressbar"
@@ -33,14 +33,8 @@
                 {% endfor %}
             </div>
             <div class="mb-4">
-                <label for="text-input" class="form-label">Please suggest categories from the given title and description:</label>
-                <input type="text"
-                       class="form-control"
-                       id="text-input"
-                       name="suggested_categories"
-                       value="{{ answer.suggested_categories|default:'' }}"/>
-                <input type="hidden" value="{{ object.pk }}" name="document" />
-                <div class="d-none">{{ form.visible_fields.1 }}</div>
+                {% csrf_token %}
+                {% bootstrap_form form %}
                 {% if page_obj.has_next %}
                     <input type="hidden"
                            value="{% url 'judge-tabel-item' dataset.pk %}?page={{ page_obj.next_page_number }}"
@@ -81,6 +75,10 @@
         const options = correctCategoriesSelect.options
 
         window.addEventListener('load', function () {
+
+            // Hide this input form because user will use custom button to modify this input
+            document.getElementById('id_correct_categories').parentElement.className = 'd-none';
+
             for(let i=0; i<options.length; i++) {
                 const option = options[i];
                 const span = getSpanByPk(option.value)

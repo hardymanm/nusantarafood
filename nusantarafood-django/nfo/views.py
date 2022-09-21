@@ -423,15 +423,13 @@ def update_judge_item_context(view, context):
     context['object'] = context['page_obj'][0]
 
     if view.method == models.METHOD_WORDNET:
-        context['answer'] = models.WordnetAnswer.objects.filter(word=context['object'], judge=view.request.user).first()
+        context['answer'], _ = models.WordnetAnswer.objects.get_or_create(word=context['object'], judge=view.request.user)
     elif view.method == models.METHOD_WIKI:
-        context['categories'] = models.FoodCategory.objects.order_by('name').all()
-        context['answer'] = models.WikiAnswer.objects.filter(document=context['object'], judge=view.request.user).first()
-        context['form'] = forms.WikiAnswerForm()
+        context['answer'], _ = models.WikiAnswer.objects.get_or_create(document=context['object'], judge=view.request.user)
+        context['form'] = forms.WikiAnswerForm(instance=context['answer'])
     elif view.method == models.METHOD_TABEL:
-        context['categories'] = models.FoodCategory.objects.order_by('name').all()
-        context['answer'] = models.TabelAnswer.objects.filter(document=context['object'], judge=view.request.user).first()
-        context['form'] = forms.TabelAnswerForm({'correct_categories': get_correct_categories(context['answer'])})
+        context['answer'], _ = models.TabelAnswer.objects.get_or_create(document=context['object'], judge=view.request.user)
+        context['form'] = forms.TabelAnswerForm(instance=context['answer'])
 
     return context
 
@@ -454,13 +452,6 @@ def finish_session(view, dataset):
     session.finished_at = timezone.now()
     session.save()
     return session
-
-
-def get_correct_categories(answer):
-    if answer:
-        return [c.pk for c in answer.correct_categories.all()]
-    else:
-        return []
 
 
 def error_as_ul(form_errors):
