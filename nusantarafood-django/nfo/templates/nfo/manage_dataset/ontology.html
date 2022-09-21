@@ -30,12 +30,15 @@
     <script type="text/javascript">
         // create an array with nodes
         var nodes = new vis.DataSet([
-            {id: 'root', label: 'Recipe', color: '#1A237E', font: '16px arial white', shape: 'circle'},
+            {id: 'root', label: 'Recipe', color: '#1A237E', font: '20px arial white', shape: 'circle'},
             {% for category in food_categories %}
-                {id: 'fc-{{ category.pk }}', label: '{{ category.name }} ({{ category.documents|length }})', shape: 'box', color: '#5C6BC0', font: '14px arial white'},
+                {id: 'fc-{{ category.pk }}', label: '{{ category.name }} ({{ category.documents|length }})', shape: 'box', color: '#5C6BC0', font: '16px arial white'},
+            {% endfor %}
+            {% for category in suggested_categories %}
+                {id: 'sc-{{ category.name }}', label: '{{ category.name }} ({{ category.documents|length }})', shape: 'box', color: 'red', font: '16px arial white'},
             {% endfor %}
             {% for document in documents %}
-                {id: 'd-{{ document.pk }}', label: '{{ document.title_clean }}', shape: 'box', color: '#A5D6A7', font: '12px arial #1B5E20'},
+                {id: 'd-{{ document.pk }}', label: '{{ document.title_clean }}', shape: 'box', color: '#A5D6A7', font: '8px arial #1B5E20'},
             {% endfor %}
         ]);
 
@@ -45,6 +48,13 @@
                 {from: 'root', to: 'fc-{{ category.pk }}'},
                 {% for document in category.documents %}
                     {from: 'fc-{{ category.pk }}', to: 'd-{{ document.pk }}'},
+                {% endfor %}
+            {% endfor %}
+
+            {% for category in suggested_categories %}
+                {from: 'root', to: 'sc-{{ category.name }}'},
+                {% for document in category.documents %}
+                    {from: 'sc-{{ category.name }}', to: 'd-{{ document.pk }}'},
                 {% endfor %}
             {% endfor %}
         ]);

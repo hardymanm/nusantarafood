@@ -1,4 +1,5 @@
 import json
+import re
 
 from django.db import models
 
@@ -72,22 +73,53 @@ class Dataset(models.Model):
 
     # @todo: keep the document count but limit documents obj with [:100] for visualization
     def get_tabel_ontology(self):
-        context = {'food_categories': [], 'documents': Document.objects.filter(tabelanswer__dataset=self)}
+        context = {'food_categories': [], 'documents': Document.objects.filter(tabelanswer__dataset=self).all()}
 
         categories = FoodCategory.objects.all()
         for category in categories:
             documents = Document.objects.filter(tabelanswer__dataset=self, tabelanswer__correct_categories=category).all()
             context['food_categories'].append({'pk': category.pk, 'name': category.name_en, 'documents': [{'pk': document.pk, 'title': document.title} for document in documents]})
 
+        user_categories = dict()
+        for document in context['documents']:
+            answers = document.tabelanswer_set.all()
+            suggested_categories = []
+            tmp = [ans.suggested_categories for ans in answers]
+            for categories in tmp:
+                suggested_categories += re.findall(r'\w+', categories)
+
+            for category in suggested_categories:
+                if category in user_categories:
+                    user_categories[category].append({'pk': document.pk, 'title': document.title})
+                else:
+                    user_categories[category] = [{'pk': document.pk, 'title': document.title}]
+
+        context['suggested_categories'] = []
+        for category, documents in user_categories.items():
+            context['suggested_categories'].append({'name': category, 'documents': documents})
+
         return context
 
     def get_wiki_ontology(self):
         context = {'food_categories': [], 'documents': Document.objects.filter(wikianswer__dataset=self)}
 
-        categories = FoodCategory.objects.all()
-        for category in categories:
-            documents = Document.objects.filter(wikianswer__dataset=self, wikianswer__correct_categories=category).all()
-            context['food_categories'].append({'pk': category.pk, 'name': category.name_en, 'documents': [{'pk': document.pk, 'title': document.title} for document in documents]})
+        user_categories = dict()
+        for document in context['documents']:
+            answers = document.wikianswer_set.all()
+            suggested_categories = []
+            tmp = [ans.suggested_categories for ans in answers]
+            for categories in tmp:
+                suggested_categories += re.findall(r'\w+', categories)
+
+            for category in suggested_categories:
+                if category in user_categories:
+                    user_categories[category].append({'pk': document.pk, 'title': document.title})
+                else:
+                    user_categories[category] = [{'pk': document.pk, 'title': document.title}]
+
+        context['suggested_categories'] = []
+        for category, documents in user_categories.items():
+            context['suggested_categories'].append({'name': category, 'documents': documents})
 
         return context
 

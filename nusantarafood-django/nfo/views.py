@@ -1,3 +1,5 @@
+import re
+
 from django.http import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
@@ -137,12 +139,12 @@ def download_wordnet_ontology_json(request, pk):
 
 
 def download_wiki_ontology_json(request, pk):
-    documents = models.Document.objects.filter(dataset__id=pk).prefetch_related('wikianswer_set__correct_categories')
+    documents = models.Document.objects.filter(dataset__id=pk)
     return JsonResponse([document_to_dict(d, models.METHOD_WIKI) for d in documents], safe=False)
 
 
 def download_tabel_ontology_json(request, pk):
-    documents = models.Document.objects.filter(dataset__id=pk).prefetch_related('tabelanswer_set__correct_categories')
+    documents = models.Document.objects.filter(dataset__id=pk)
     return JsonResponse([document_to_dict(d, models.METHOD_TABEL) for d in documents], safe=False)
 
 
@@ -474,15 +476,30 @@ def delete_related_answers(dataset):
 
 
 def document_to_dict(document, method):
-    if method == models.METHOD_WIKI:
-        categories = models.FoodCategory.objects.filter(wiki_answer__document=document).all()
-    elif method == models.METHOD_TABEL:
-        categories = models.FoodCategory.objects.filter(tabel_answer__document=document).all()
-    else:
-        categories = []
-
-    return {
+    result = {
         'title': document.title,
         'title_clean': document.title_clean,
-        'categories': [c.name_en for c in categories]
+        'suggested_categories': get_suggested_categories(document, method)
     }
+
+    if method == models.METHOD_TABEL:
+        result['correct_categories'] = [cat.name_en for cat in models.FoodCategory.objects.filter(tabel_answer__document=document).all()]
+
+    return result
+
+
+def get_suggested_categories(document, method):
+    if method == models.METHOD_WIKI:
+        answers = document.wikianswer_set.all()
+    elif method == models.METHOD_TABEL:
+        answers = document.tabelanswer_set.all()
+    else:
+        # @todo: implement for wordnet
+        answer = []
+
+    suggested_categories = set()
+    tmp = [ans.suggested_categories for ans in answers]
+    for categories in tmp:
+        suggested_categories.update(re.findall(r'\w+', categories))
+
+    return list(suggested_categories)
