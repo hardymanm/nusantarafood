@@ -61,7 +61,7 @@ def home(request):
 
 class ManageDatasetList(LoginRequiredMixin, ListView):
     model = models.Dataset
-    paginate_by = 5
+    paginate_by = 10
     template_name = 'nfo/manage_dataset/list.html'
     ordering = '-created_at'
 
@@ -262,7 +262,7 @@ class ManageDocumentDetail(LoginRequiredMixin, DetailView):
 
 class ManageJudgeList(LoginRequiredMixin, ListView):
     model = User
-    paginate_by = 5
+    paginate_by = 10
     template_name = 'nfo/manage_judge/list.html'
     form = forms.AddJudgeForm()
 
@@ -298,7 +298,7 @@ class ManageJudgeDetail(LoginRequiredMixin, ListView):
 
 class JudgeWordnetList(LoginRequiredMixin, ListView):
     model = models.Dataset
-    paginate_by = 5
+    paginate_by = 10
     template_name = 'nfo/judge/wordnet_list.html'
 
     def get_queryset(self):
@@ -326,7 +326,7 @@ class JudgeWordnetDone(LoginRequiredMixin, JudgeDoneMixin):
 
 class JudgeWikiList(LoginRequiredMixin, ListView):
     model = models.Dataset
-    paginate_by = 5
+    paginate_by = 10
     template_name = 'nfo/judge/wiki_list.html'
 
     def get_queryset(self):
@@ -354,7 +354,7 @@ class JudgeWikiDone(LoginRequiredMixin, JudgeDoneMixin):
 
 class JudgeTabelList(LoginRequiredMixin, ListView):
     model = models.Dataset
-    paginate_by = 5
+    paginate_by = 10
     template_name = 'nfo/judge/tabel_list.html'
 
     def get_queryset(self):

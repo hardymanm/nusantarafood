@@ -213,10 +213,10 @@ class WordnetAnswer(AnswerMixin):
 
 class WikiAnswer(AnswerMixin):
     document = models.ForeignKey('nfo.Document', on_delete=models.CASCADE)
-    suggested_categories = models.CharField(max_length=1000, blank=True, default='')
+    suggested_categories = models.CharField(max_length=1000, blank=True, default='', help_text='Pisahkan kategori dengan spasi/separate category with space')
 
 
 class TabelAnswer(AnswerMixin):
     document = models.ForeignKey('nfo.Document', on_delete=models.CASCADE)
     correct_categories = models.ManyToManyField('nfo.FoodCategory', related_name='tabel_answer', related_query_name='tabel_answer', blank=True)
-    suggested_categories = models.CharField(max_length=1000, blank=True, default='')
+    suggested_categories = models.CharField(max_length=1000, blank=True, default='', help_text='Pisahkan kategori dengan spasi/separate category with space')
