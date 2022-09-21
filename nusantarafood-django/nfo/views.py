@@ -15,6 +15,15 @@ from nfo.utils.import_utils import import_lda_data, import_lda_terms
 from nfo.utils.wiki_utils import WikiUtils
 
 
+# -- Utility
+def ingredient_dataentry(request):
+    if request.method == 'POST':
+        form = forms.IngredientForm(request.POST)
+        form.save()
+
+    return render(request, 'nfo/utils/ingredient_dataentry.html', {'form': forms.IngredientForm()})
+
+
 # -- Mixins
 class JudgeItemMixin(ListView):
     paginate_by = 1

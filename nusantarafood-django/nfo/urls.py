@@ -20,6 +20,8 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('accounts/', include('django.contrib.auth.urls')),
 
+    path('utils/', views.ingredient_dataentry, name='utils-ingredient-dataentry'),
+
     path('', views.home, name='home'),
     path('manage/dataset', views.ManageDatasetList.as_view(), name='manage-dataset-list'),
     path('manage/dataset/<int:pk>', views.ManageDatasetDetail.as_view(), name='manage-dataset-detail'),

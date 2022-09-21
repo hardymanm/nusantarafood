@@ -1,5 +1,5 @@
 from django import forms
-
+from django.db import transaction
 from nfo import models
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm
@@ -75,3 +75,28 @@ class AddJudgeForm(UserCreationForm):
             judge_group.user_set.add(user)
 
         return user
+
+
+class IngredientForm(forms.Form):
+    ingredient = forms.CharField()
+    variation = forms.CharField(widget=forms.Textarea(attrs={'name': 'variation', 'rows': '10'}))
+
+    def save(self):
+        if self.is_valid():
+            name = self.cleaned_data.get('ingredient')
+            with transaction.atomic():
+                ingredient, _ = models.Ingredient.objects.get_or_create(name=name)
+
+                variation = self.cleaned_data.get('variation')
+                variations = variation.splitlines()
+                variations = [i.strip() for i in variations]
+
+                # Include ingredient as variation
+                obj, _ = models.Variation.objects.get_or_create(ingredient=ingredient, name=name)
+
+                # The rest of variations
+                for variation in variations:
+                    obj, _ = models.Variation.objects.get_or_create(ingredient=ingredient, name=variation)
+
+        else:
+            raise forms.ValidationError('invalid form')

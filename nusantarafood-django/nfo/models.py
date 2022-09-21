@@ -19,6 +19,28 @@ class TokenList(models.Model):
         return '{} ({} lines)'.format(self.name, len(self.content.splitlines()))
 
 
+class Ingredient(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Variation(models.Model):
+    ingredient = models.ForeignKey('nfo.Ingredient', on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return '{} === {}'.format(self.ingredient.name, self.name)
+
+
 class Tabel(models.Model):
     name = models.CharField(max_length=255)
     name_en = models.CharField(max_length=255)
