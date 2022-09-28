@@ -210,13 +210,22 @@ class WordnetAnswer(AnswerMixin):
     word = models.ForeignKey('nfo.Word', on_delete=models.CASCADE)
     correct_hypernym = models.CharField(max_length=255, null=True, blank=True)
 
+    def __str__(self):
+        return '#{} Dataset#{} Doc#{} Judge#{},{}'.format(self.pk, self.word.dataset_id, self.word_id, self.judge_id, self.judge.username)
+
 
 class WikiAnswer(AnswerMixin):
     document = models.ForeignKey('nfo.Document', on_delete=models.CASCADE)
     suggested_categories = models.CharField(max_length=1000, blank=True, default='', help_text='Pisahkan kategori dengan spasi/separate category with space')
+
+    def __str__(self):
+        return '#{} Dataset#{} Doc#{} Judge#{},{}'.format(self.pk, self.document.dataset_id, self.document_id, self.judge_id, self.judge.username)
 
 
 class TabelAnswer(AnswerMixin):
     document = models.ForeignKey('nfo.Document', on_delete=models.CASCADE)
     correct_categories = models.ManyToManyField('nfo.FoodCategory', related_name='tabel_answer', related_query_name='tabel_answer', blank=True)
     suggested_categories = models.CharField(max_length=1000, blank=True, default='', help_text='Pisahkan kategori dengan spasi/separate category with space')
+
+    def __str__(self):
+        return '#{} Dataset#{} Doc#{} Judge#{},{}'.format(self.pk, self.document.dataset_id, self.document_id, self.judge_id, self.judge.username)
