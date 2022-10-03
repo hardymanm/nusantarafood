@@ -427,13 +427,22 @@ def update_judge_item_context(view, context):
     if view.method == models.METHOD_WORDNET:
         context['answer'], _ = models.WordnetAnswer.objects.get_or_create(word=context['object'], judge=view.request.user, dataset=context['dataset'])
     elif view.method == models.METHOD_WIKI:
+        delete_duplicate(view, context['object'], view.request.user)
         context['answer'], _ = models.WikiAnswer.objects.get_or_create(document=context['object'], judge=view.request.user, dataset=context['dataset'])
         context['form'] = forms.WikiAnswerForm(instance=context['answer'])
     elif view.method == models.METHOD_TABEL:
+        delete_duplicate(view, context['object'], view.request.user)
         context['answer'], _ = models.TabelAnswer.objects.get_or_create(document=context['object'], judge=view.request.user, dataset=context['dataset'])
         context['form'] = forms.TabelAnswerForm(instance=context['answer'])
 
     return context
+
+
+def delete_duplicate(view, document, judge):
+    if view.method == models.METHOD_WIKI:
+        models.WikiAnswer.objects.filter(document=document, judge=judge, dataset=None).delete()
+    elif view.method == models.METHOD_TABEL:
+        models.WikiAnswer.objects.filter(document=document, judge=judge, dataset=None).delete()
 
 
 def update_session(view, context):
