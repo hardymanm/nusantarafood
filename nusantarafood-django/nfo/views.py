@@ -511,10 +511,12 @@ def word_to_dict(word, judge_pk=None):
 
 
 def document_to_dict(document, method, judge_pk=None):
+    answers = get_answers(document, method, judge_pk)
     result = {
         'title': document.title,
         'title_clean': document.title_clean,
-        'suggested_categories': get_suggested_categories(document, method, judge_pk)
+        'user_input': answers,
+        'suggested_categories': answers_as_list(answers)
     }
 
     if method == models.METHOD_TABEL:
@@ -523,14 +525,13 @@ def document_to_dict(document, method, judge_pk=None):
     return result
 
 
-def get_suggested_categories(document, method, judge_pk):
+def get_answers(document, method, judge_pk):
     if judge_pk:
         if method == models.METHOD_WIKI:
             answers = document.wikianswer_set.filter(judge_id=judge_pk).all()
         elif method == models.METHOD_TABEL:
             answers = document.tabelanswer_set.filter(judge_id=judge_pk).all()
         else:
-            # @todo: implement for wordnet
             answers = []
     else:
         if method == models.METHOD_WIKI:
@@ -538,12 +539,14 @@ def get_suggested_categories(document, method, judge_pk):
         elif method == models.METHOD_TABEL:
             answers = document.tabelanswer_set.all()
         else:
-            # @todo: implement for wordnet
             answers = []
 
+    return [ans.suggested_categories for ans in answers]
+
+
+def answers_as_list(answers):
     suggested_categories = set()
-    tmp = [ans.suggested_categories for ans in answers]
-    for categories in tmp:
+    for categories in answers:
         suggested_categories.update(re.findall(r'\w+', categories))
 
     return list(suggested_categories)
