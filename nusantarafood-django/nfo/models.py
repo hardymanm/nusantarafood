@@ -73,11 +73,11 @@ class Dataset(models.Model):
 
     # @todo: keep the document count but limit documents obj with [:100] for visualization
     def get_tabel_ontology(self):
-        context = {'food_categories': [], 'documents': Document.objects.filter(tabelanswer__dataset=self).all()}
+        context = {'food_categories': [], 'documents': Document.objects.filter(dataset=self).all()}
 
         categories = FoodCategory.objects.all()
         for category in categories:
-            documents = Document.objects.filter(tabelanswer__dataset=self, tabelanswer__correct_categories=category).all()
+            documents = Document.objects.filter(dataset=self).all()
             context['food_categories'].append({'pk': category.pk, 'name': category.name_en, 'documents': [{'pk': document.pk, 'title': document.title} for document in documents]})
 
         user_categories = dict()

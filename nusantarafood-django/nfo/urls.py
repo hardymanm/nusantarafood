@@ -47,6 +47,9 @@ urlpatterns = [
 
     path('manage/judge', views.ManageJudgeList.as_view(), name='manage-judge-list'),
     path('manage/judge/<int:pk>', views.ManageJudgeDetail.as_view(), name='manage-judge-detail'),
+    path('manage/judge/<int:judge_pk>/dataset/<int:pk>/wordnet', views.download_judge_wordnet_result_json, name='download-judge-wordnet-result'),
+    path('manage/judge/<int:judge_pk>/dataset/<int:pk>/wiki', views.download_judge_wiki_result_json, name='download-judge-wiki-result'),
+    path('manage/judge/<int:judge_pk>/dataset/<int:pk>/tabel', views.download_judge_tabel_result_json, name='download-judge-tabel-result'),
 
     path('judge-wordnet', views.JudgeWordnetList.as_view(), name='judge-wordnet'),
     path('judge-wordnet/<int:pk>', views.JudgeWordnetInstruction.as_view(), name='judge-wordnet-instruction'),

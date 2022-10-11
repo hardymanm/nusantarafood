@@ -138,14 +138,29 @@ def download_wordnet_ontology_json(request, pk):
     pass
 
 
+def download_judge_wordnet_result_json(request, pk, judge_pk):
+    words = models.Word.objects.filter(dataset_id=pk).all()
+    return JsonResponse([word_to_dict(w, judge_pk) for w in words], safe=False)
+
+
 def download_wiki_ontology_json(request, pk):
     documents = models.Document.objects.filter(dataset__id=pk)
-    return JsonResponse([document_to_dict(d, models.METHOD_WIKI) for d in documents], safe=False)
+    return JsonResponse([document_to_dict(d, models.METHOD_WIKI, None) for d in documents], safe=False)
+
+
+def download_judge_wiki_result_json(request, pk, judge_pk):
+    documents = models.Document.objects.filter(dataset_id=pk)
+    return JsonResponse([document_to_dict(d, models.METHOD_WIKI, judge_pk) for d in documents], safe=False)
 
 
 def download_tabel_ontology_json(request, pk):
     documents = models.Document.objects.filter(dataset__id=pk)
-    return JsonResponse([document_to_dict(d, models.METHOD_TABEL) for d in documents], safe=False)
+    return JsonResponse([document_to_dict(d, models.METHOD_TABEL, None) for d in documents], safe=False)
+
+
+def download_judge_tabel_result_json(request, pk, judge_pk):
+    documents = models.Document.objects.filter(dataset_id=pk)
+    return JsonResponse([document_to_dict(d, models.METHOD_TABEL, judge_pk) for d in documents], safe=False)
 
 
 def rename_dataset(request, pk):
@@ -484,27 +499,47 @@ def delete_related_answers(dataset):
     models.TabelAnswer.objects.filter(dataset=dataset).delete()
 
 
-def document_to_dict(document, method):
-    result = {
-        'title': document.title,
-        'title_clean': document.title_clean,
-        'suggested_categories': get_suggested_categories(document, method)
-    }
+def word_to_dict(word, judge_pk=None):
+    answer = models.WordnetAnswer.objects.filter(judge_id=judge_pk, word=word).first()
 
-    if method == models.METHOD_TABEL:
-        result['correct_categories'] = [cat.name_en for cat in models.FoodCategory.objects.filter(tabel_answer__document=document).all()]
+    result = {
+        'title': word.noun,
+        'correct_hypernym': answer.correct_hypernym
+    }
 
     return result
 
 
-def get_suggested_categories(document, method):
-    if method == models.METHOD_WIKI:
-        answers = document.wikianswer_set.all()
-    elif method == models.METHOD_TABEL:
-        answers = document.tabelanswer_set.all()
+def document_to_dict(document, method, judge_pk=None):
+    result = {
+        'title': document.title,
+        'title_clean': document.title_clean,
+        'suggested_categories': get_suggested_categories(document, method, judge_pk)
+    }
+
+    if method == models.METHOD_TABEL:
+        result['correct_categories'] = [cat.name_en for cat in models.FoodCategory.objects.filter(tabel_answer__document=document, tabel_answer__judge_id=judge_pk).all()]
+
+    return result
+
+
+def get_suggested_categories(document, method, judge_pk):
+    if judge_pk:
+        if method == models.METHOD_WIKI:
+            answers = document.wikianswer_set.filter(judge_id=judge_pk).all()
+        elif method == models.METHOD_TABEL:
+            answers = document.tabelanswer_set.filter(judge_id=judge_pk).all()
+        else:
+            # @todo: implement for wordnet
+            answers = []
     else:
-        # @todo: implement for wordnet
-        answer = []
+        if method == models.METHOD_WIKI:
+            answers = document.wikianswer_set.all()
+        elif method == models.METHOD_TABEL:
+            answers = document.tabelanswer_set.all()
+        else:
+            # @todo: implement for wordnet
+            answers = []
 
     suggested_categories = set()
     tmp = [ans.suggested_categories for ans in answers]
