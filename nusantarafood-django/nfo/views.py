@@ -515,12 +515,13 @@ def document_to_dict(document, method, judge_pk=None):
     result = {
         'title': document.title,
         'title_clean': document.title_clean,
-        'user_input': answers,
-        'suggested_categories': answers_as_list(answers)
+        'user_text_input': answers,
     }
 
     if method == models.METHOD_TABEL:
+        result['generated_categories'] = [cat.name_en for cat in document.generated_categories.all()]
         result['correct_categories'] = [cat.name_en for cat in models.FoodCategory.objects.filter(tabel_answer__document=document, tabel_answer__judge_id=judge_pk).all()]
+        result['wrong_categories'] = list(set(result['generated_categories']) - set(result['correct_categories']))
 
     return result
 
@@ -528,11 +529,14 @@ def document_to_dict(document, method, judge_pk=None):
 def get_answers(document, method, judge_pk):
     if judge_pk:
         if method == models.METHOD_WIKI:
-            answers = document.wikianswer_set.filter(judge_id=judge_pk).all()
+            answer = document.wikianswer_set.filter(judge_id=judge_pk, dataset__isnull=False).first()
+            return answer.suggested_categories
         elif method == models.METHOD_TABEL:
-            answers = document.tabelanswer_set.filter(judge_id=judge_pk).all()
+            answer = document.tabelanswer_set.filter(judge_id=judge_pk, dataset__isnull=False).first()
+            return answer.suggested_categories
         else:
-            answers = []
+            return ''
+
     else:
         if method == models.METHOD_WIKI:
             answers = document.wikianswer_set.all()
