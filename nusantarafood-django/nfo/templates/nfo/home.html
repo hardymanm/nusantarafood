@@ -1,26 +1,35 @@
 {% extends 'nfo/__base__.html' %}
-
+{% load static %}
 
 {% block content %}
 
     <div class="container-xxl">
+
+        <div class="text-center text-white p-5" style="background-image: url('{% static 'img/bg.jpg' %}');">
+            <h1>Nusantara Food</h1>
+            <h3>Knowledge Graph</h3>
+            <div class="mt-5 mb-5">
+                Knowledge graphs organized and made recipe and nutrition data more broadly available to both humans and machines.
+            </div>
+        </div>
+
         <h2 class="text-center my-5">How to judge the ontology</h2>
         <div class="row">
             <div class="mb-5 col-md-4 d-flex justify-content-center text-center">
                 <a class="text-decoration-none" href="{% url 'judge-wordnet' %}">
-                    <div class="rounded-circle bg-secondary mb-3" style="width: 10em; height: 10em;"></div>
+                    <div class="rounded-circle bg-secondary mb-3" style="width: 10em; height: 10em; background-image: url('{% static 'img/net.png' %}'); background-size: contain;"></div>
                     <span class="fs-5">Wordnet</span>
                 </a>
             </div>
             <div class="mb-5 col-md-4 d-flex justify-content-center text-center">
                 <a class="text-decoration-none" href="{% url 'judge-wiki' %}">
-                    <div class="rounded-circle bg-secondary mb-3" style="width: 10em; height: 10em;"></div>
+                    <div class="rounded-circle bg-secondary mb-3" style="width: 10em; height: 10em; background-image: url('{% static 'img/wiki.png' %}'); background-size: contain;"></div>
                     <span class="fs-5">Wikipedia</span>
                 </a>
             </div>
             <div class="mb-5 col-md-4 d-flex justify-content-center text-center">
                 <a class="text-decoration-none" href="{% url 'judge-tabel' %}">
-                    <div class="rounded-circle bg-secondary mb-3" style="width: 10em; height: 10em;"></div>
+                    <div class="rounded-circle bg-secondary mb-3" style="width: 10em; height: 10em; background-image: url('{% static 'img/tabel.png' %}'); background-size: contain;"></div>
                     <span class="fs-5">Tabel 1981</span>
                 </a>
             </div>
