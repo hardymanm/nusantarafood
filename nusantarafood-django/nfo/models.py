@@ -199,6 +199,32 @@ class JudgeSession(models.Model):
         return '{}/{} Done:{} -- {}'.format(self.dataset, self.method.upper(), self.is_finished, self.judge_username)
 
 
+    def get_wordnet_accuracy(self):
+        if self.wordnetaccuracy_set.exists():
+            return self.wordnetaccuracy_set.first().score
+
+        score = 0
+        for word in self.dataset.word_set.all():
+            if WordnetAnswer.objects.filter(word=word, judge=self.judge).exists():
+                answer = WordnetAnswer.objects.filter(word=word, judge=self.judge).first()
+                if answer.correct_hypernym in [h['name'] for h in word.hypernyms()]:
+                    score += 1
+
+        accuracy = WordnetAccuracy(judge_session=self, score=score)
+        accuracy.save()
+
+        return score
+
+
+# Model to cache result
+class WordnetAccuracy(models.Model):
+    judge_session = models.ForeignKey('nfo.JudgeSession', on_delete=models.CASCADE)
+    score = models.IntegerField(default=0)
+
+    def __str__(self):
+        return '{}'.format(self.judge_session)
+
+
 class AnswerMixin(models.Model):
     dataset = models.ForeignKey('nfo.Dataset', null=True, on_delete=models.SET_NULL)  # to simplify query
     judge = models.ForeignKey('auth.User', on_delete=models.CASCADE)

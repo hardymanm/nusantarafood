@@ -29,13 +29,15 @@
             {% for dataset in page_obj %}
                 <div class="card-body {% if not forloop.first %}border-top{% endif %}">
                     <div class="row">
-                        <div class="col-6">{{ dataset.name }} ({{ dataset.document_set.count }})</div>
+                        <div class="col-4">{{ dataset.name }} ({{ dataset.document_set.count }})</div>
+
+                        {% dataset_wordnet_judge_progress dataset object as progress %}
                         <div class="col-2">
                             {% small_heading 'Wordnet' %}
-                            {% dataset_wordnet_judge_progress dataset object as progress %}
                             {% if progress %}
                                 {% if progress.is_finished %}
-                                    <div><span class="text-white bg-success">Completed</span>
+                                    <div>
+                                        <span class="text-white bg-success">Completed</span>
                                         [<a href="{% url 'download-judge-wordnet-result' object.pk dataset.pk %}">DL</a>]
                                     </div>
                                 {% else %}
@@ -45,6 +47,16 @@
                                 <div class="text-secondary">Pending</div>
                             {% endif %}
                         </div>
+
+                        <div class="col-2">
+                            {% small_heading 'Wordnet Score' %}
+                            {% if progress %}
+                                {% if progress.is_finished %}
+                                    <div>{{ progress.get_wordnet_accuracy }}</div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+
                         <div class="col-2">
                             {% small_heading 'Wiki' %}
                             {% dataset_wiki_judge_progress dataset object as progress %}
