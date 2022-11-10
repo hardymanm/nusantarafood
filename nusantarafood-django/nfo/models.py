@@ -243,7 +243,7 @@ class WordnetAnswer(AnswerMixin):
     correct_hypernym = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
-        return '#{} Dataset#{} Doc#{} Judge#{},{}'.format(self.pk, self.word.dataset_id, self.word_id, self.judge_id, self.judge.username)
+        return '#{} Dataset#{} Doc#{} Judge#{},{} word: {}, answer: {}'.format(self.pk, self.word.dataset_id, self.word_id, self.judge_id, self.judge.username, self.word, self.correct_hypernym)
 
 
 class WikiAnswer(AnswerMixin):
