@@ -215,6 +215,12 @@ class JudgeSession(models.Model):
 
         return score
 
+    def print_wordnet_accuracy(self):
+        score = self.get_wordnet_accuracy()
+        total = self.dataset.word_set.count()
+        percentage = score / total * 100
+        return '{}/{} ({:.2f}%)'.format(score, total, percentage)
+
 
 # Model to cache result
 class WordnetAccuracy(models.Model):

@@ -52,7 +52,7 @@
                             {% small_heading 'Wordnet Score' %}
                             {% if progress %}
                                 {% if progress.is_finished %}
-                                    <div>{{ progress.get_wordnet_accuracy }}</div>
+                                    <div>{{ progress.print_wordnet_accuracy }}</div>
                                 {% endif %}
                             {% endif %}
                         </div>
