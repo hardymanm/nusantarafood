@@ -198,7 +198,6 @@ class JudgeSession(models.Model):
     def __str__(self):
         return '{}/{} Done:{} -- {}'.format(self.dataset, self.method.upper(), self.is_finished, self.judge_username)
 
-
     def get_wordnet_accuracy(self):
         if self.wordnetaccuracy_set.exists():
             return self.wordnetaccuracy_set.first().score
@@ -218,6 +217,18 @@ class JudgeSession(models.Model):
     def print_wordnet_accuracy(self):
         score = self.get_wordnet_accuracy()
         total = self.dataset.word_set.count()
+        percentage = score / total * 100
+        return '{}/{} ({:.2f}%)'.format(score, total, percentage)
+
+    def get_wiki_accuracy(self):
+        qs = self.dataset.document_set.exclude(definition_en__isnull=True).exclude(definition_en='')
+        qs = qs.exclude(definition_id__isnull=True).exclude(definition_id='')
+        qs = qs.exclude(definition_ms__isnull=True).exclude(definition_ms='')
+        return qs.count()
+
+    def print_wiki_accuracy(self):
+        score = self.get_wiki_accuracy()
+        total = self.dataset.document_set.count()
         percentage = score / total * 100
         return '{}/{} ({:.2f}%)'.format(score, total, percentage)
 

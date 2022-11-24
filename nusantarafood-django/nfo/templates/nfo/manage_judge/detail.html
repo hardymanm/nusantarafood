@@ -29,15 +29,15 @@
             {% for dataset in page_obj %}
                 <div class="card-body {% if not forloop.first %}border-top{% endif %}">
                     <div class="row">
-                        <div class="col-4">{{ dataset.name }} ({{ dataset.document_set.count }})</div>
+                        <div class="col-3">{{ dataset.name }} ({{ dataset.document_set.count }})</div>
 
                         {% dataset_wordnet_judge_progress dataset object as progress %}
-                        <div class="col-2">
+                        <div class="col-1">
                             {% small_heading 'Wordnet' %}
                             {% if progress %}
                                 {% if progress.is_finished %}
                                     <div>
-                                        <span class="text-white bg-success">Completed</span>
+                                        <span class="text-white bg-success">Done</span>
                                         [<a href="{% url 'download-judge-wordnet-result' object.pk dataset.pk %}">DL</a>]
                                     </div>
                                 {% else %}
@@ -57,31 +57,41 @@
                             {% endif %}
                         </div>
 
-                        <div class="col-2">
+                        <div class="col-1">
                             {% small_heading 'Wiki' %}
                             {% dataset_wiki_judge_progress dataset object as progress %}
                             {% if progress %}
                                 {% if progress.is_finished %}
-                                    <div><span class="text-white bg-success">Completed</span>
+                                    <div><span class="text-white bg-success">Done</span>
                                     [<a href="{% url 'download-judge-wiki-result' object.pk dataset.pk %}">DL</a>]
                                     </div>
                                 {% else %}
-                                    <div><span class="bg-warning">In-Progress ({{ progress.progress }}%)</span></div>
+                                    <div><span class="bg-warning">{{ progress.progress }}%</span></div>
                                 {% endif %}
                             {% else %}
                                 <div class="text-secondary">Pending</div>
                             {% endif %}
                         </div>
+
                         <div class="col-2">
+                            {% small_heading 'Wiki Score' %}
+                            {% if progress %}
+                                {% if progress.is_finished %}
+                                    <div>{{ progress.print_wiki_accuracy }}</div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+
+                        <div class="col-1">
                             {% small_heading 'Tabel' %}
                             {% dataset_tabel_judge_progress dataset object as progress %}
                             {% if progress %}
                                 {% if progress.is_finished %}
-                                    <div><span class="text-white bg-success">Completed</span>
+                                    <div><span class="text-white bg-success">Done</span>
                                     [<a href="{% url 'download-judge-tabel-result' object.pk dataset.pk %}">DL</a>]
                                     </div>
                                 {% else %}
-                                    <div><span class="bg-warning">In-Progress ({{ progress.progress }}%)</span></div>
+                                    <div><span class="bg-warning">{{ progress.progress }}%</span></div>
                                 {% endif %}
                             {% else %}
                                 <div class="text-secondary">Pending</div>
