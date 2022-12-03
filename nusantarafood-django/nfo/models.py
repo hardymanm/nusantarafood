@@ -146,6 +146,9 @@ class Document(models.Model):
     def __str__(self):
         return self.title
 
+    def has_generated_categories(self):
+        return self.generated_categories.count() > 0
+
 
 class FoodCategory(models.Model):
     name = models.CharField(max_length=255)
@@ -232,11 +235,52 @@ class JudgeSession(models.Model):
         percentage = score / total * 100
         return '{}/{} ({:.2f}%)'.format(score, total, percentage)
 
+    def get_tabel_accuracy(self):
+        max_score = 0
+        score = 0
+        for document in self.dataset.document_set.all():
+
+            if not document.has_generated_categories():
+                # Skip document without categories from system
+                continue
+
+            else:
+                max_score += 2
+                answer = TabelAnswer.objects.filter(document=document, judge=self.judge).first()
+                if answer:
+                    # category score
+                    score += round(answer.correct_categories.count() / document.generated_categories.count(), 2)
+
+                    # user input score
+                    if answer.has_suggestion() and answer.has_correct_categories():
+                        score += 1
+
+        return score, max_score
+
+    def print_tabel_accuracy(self):
+        if self.tabelaccuracy_set.exists():
+            return self.tabelaccuracy_set.first().score
+
+        score, total = self.get_tabel_accuracy()
+        percentage = score / total * 100
+
+        accuracy = TabelAccuracy(judge_session=self, score='{:.2f}/{} ({:.2f}%)'.format(score, total, percentage))
+        accuracy.save()
+        return accuracy.score
+
 
 # Model to cache result
 class WordnetAccuracy(models.Model):
     judge_session = models.ForeignKey('nfo.JudgeSession', on_delete=models.CASCADE)
     score = models.IntegerField(default=0)
+
+    def __str__(self):
+        return '{}'.format(self.judge_session)
+
+
+class TabelAccuracy(models.Model):
+    judge_session = models.ForeignKey('nfo.JudgeSession', on_delete=models.CASCADE)
+    score = models.CharField(max_length=255)
 
     def __str__(self):
         return '{}'.format(self.judge_session)
@@ -272,3 +316,9 @@ class TabelAnswer(AnswerMixin):
 
     def __str__(self):
         return '#{} Dataset#{} Doc#{} Judge#{},{}'.format(self.pk, self.document.dataset_id, self.document_id, self.judge_id, self.judge.username)
+
+    def has_suggestion(self):
+        return len(self.suggested_categories.strip()) > 0
+
+    def has_correct_categories(self):
+        return self.correct_categories.count() > 0

@@ -97,6 +97,15 @@
                                 <div class="text-secondary">Pending</div>
                             {% endif %}
                         </div>
+
+                        <div class="col-2">
+                            {% small_heading 'Tabel Score' %}
+                            {% if progress %}
+                                {% if progress.is_finished %}
+                                    <div>{{ progress.print_tabel_accuracy }}</div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
                     </div>
 
                 </div>
