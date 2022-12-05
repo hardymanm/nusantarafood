@@ -2,6 +2,7 @@ import json
 import re
 
 from django.db import models
+from django.db.models import Q
 
 METHOD_WORDNET = 'wordnet'
 METHOD_WIKI = 'wiki'
@@ -227,14 +228,15 @@ class JudgeSession(models.Model):
         return '{}/{} ({:.2f}%)'.format(score, total, percentage)
 
     def get_wiki_accuracy(self):
-        qs = self.dataset.document_set.exclude(definition_en__isnull=True).exclude(definition_en='')
-        qs = qs.exclude(definition_id__isnull=True).exclude(definition_id='')
-        qs = qs.exclude(definition_ms__isnull=True).exclude(definition_ms='')
+        qs = Document.objects.filter(dataset=self.dataset)
+        qs = qs.filter(Q(definition_en__regex='^.+$') | Q(definition_id__regex='^.+$') | Q(definition_ms__regex='^.+$'))
+        qs = qs.filter(wikianswer__judge=self.judge, wikianswer__suggested_categories__regex='^.+$')
+
         return qs.count()
 
     def print_wiki_accuracy(self):
         score = self.get_wiki_accuracy()
-        total = self.dataset.document_set.count()
+        total = self.dataset.document_set.filter(wikianswer__judge=self.judge, wikianswer__suggested_categories__regex='^.+$').count()
         percentage = score / total * 100
         return '{}/{} ({:.2f}%)'.format(score, total, percentage)
 
