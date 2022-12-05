@@ -202,25 +202,28 @@ class JudgeSession(models.Model):
         return '{}/{} Done:{} -- {}'.format(self.dataset, self.method.upper(), self.is_finished, self.judge_username)
 
     def get_wordnet_accuracy(self):
+        max_score = 0
+        score = 0
+        for word in self.dataset.word_set.all():
+            if WordnetAnswer.objects.filter(word=word, judge=self.judge, dataset__isnull=False).exists():
+                answer = WordnetAnswer.objects.filter(word=word, judge=self.judge, dataset__isnull=False).first()
+                if answer.correct_hypernym and len(answer.correct_hypernym.strip()) > 0:
+                    max_score += 1
+                    if answer.correct_hypernym in [h['name'] for h in word.hypernyms()]:
+                        score += 1
+
+        return score, max_score
+
+    def print_wordnet_accuracy(self):
         if self.wordnetaccuracy_set.exists():
             return self.wordnetaccuracy_set.first().score
 
-        score = 0
-        for word in self.dataset.word_set.all():
-            if WordnetAnswer.objects.filter(word=word, judge=self.judge).exists():
-                answer = WordnetAnswer.objects.filter(word=word, judge=self.judge).first()
-                if answer.correct_hypernym in [h['name'] for h in word.hypernyms()]:
-                    score += 1
+        score, total = self.get_wordnet_accuracy()
+        percentage = score / total * 100
 
-        accuracy = WordnetAccuracy(judge_session=self, score=score)
+        accuracy = WordnetAccuracy(judge_session=self, score='{:.2f}/{} ({:.2f}%)'.format(score, total, percentage))
         accuracy.save()
 
-        return score
-
-    def print_wordnet_accuracy(self):
-        score = self.get_wordnet_accuracy()
-        total = self.dataset.word_set.count()
-        percentage = score / total * 100
         return '{}/{} ({:.2f}%)'.format(score, total, percentage)
 
     def get_wiki_accuracy(self):
@@ -238,15 +241,18 @@ class JudgeSession(models.Model):
     def get_tabel_accuracy(self):
         max_score = 0
         score = 0
+        n = 0
         for document in self.dataset.document_set.all():
-
+            n += 1
             if not document.has_generated_categories():
                 # Skip document without categories from system
+                if self.dataset.pk == 18:
+                    print('skipped ' + str(n))
                 continue
 
             else:
                 max_score += 2
-                answer = TabelAnswer.objects.filter(document=document, judge=self.judge).first()
+                answer = TabelAnswer.objects.filter(document=document, judge=self.judge, dataset__isnull=False).first()
                 if answer:
                     # category score
                     score += round(answer.correct_categories.count() / document.generated_categories.count(), 2)
@@ -266,13 +272,14 @@ class JudgeSession(models.Model):
 
         accuracy = TabelAccuracy(judge_session=self, score='{:.2f}/{} ({:.2f}%)'.format(score, total, percentage))
         accuracy.save()
-        return accuracy.score
+
+        return '{:.2f}/{} ({:.2f}%)'.format(score, total, percentage)
 
 
 # Model to cache result
 class WordnetAccuracy(models.Model):
     judge_session = models.ForeignKey('nfo.JudgeSession', on_delete=models.CASCADE)
-    score = models.IntegerField(default=0)
+    score = models.CharField(max_length=255)
 
     def __str__(self):
         return '{}'.format(self.judge_session)
