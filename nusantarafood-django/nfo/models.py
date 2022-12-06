@@ -241,27 +241,20 @@ class JudgeSession(models.Model):
         return '{}/{} ({:.2f}%)'.format(score, total, percentage)
 
     def get_tabel_accuracy(self):
-        max_score = 0
-        score = 0
-        n = 0
+        max_score = 0.0
+        score = 0.0
         for document in self.dataset.document_set.all():
-            n += 1
             if not document.has_generated_categories():
-                # Skip document without categories from system
-                if self.dataset.pk == 18:
-                    print('skipped ' + str(n))
                 continue
 
             else:
-                max_score += 2
+                max_score += 1.0
                 answer = TabelAnswer.objects.filter(document=document, judge=self.judge, dataset__isnull=False).first()
                 if answer:
-                    # category score
-                    score += round(answer.correct_categories.count() / document.generated_categories.count(), 2)
-
-                    # user input score
                     if answer.has_suggestion() and answer.has_correct_categories():
-                        score += 1
+                        score += 1.0
+                    elif answer.has_correct_categories():
+                        score += answer.correct_categories.count() / document.generated_categories.count()
 
         return score, max_score
 
