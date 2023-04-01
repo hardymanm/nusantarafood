@@ -5,3 +5,4 @@ server/nfo/migrations
 server/.vscode/
 db.sqlite3
 venv
+static/

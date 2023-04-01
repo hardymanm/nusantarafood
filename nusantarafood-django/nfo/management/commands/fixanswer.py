@@ -1,23 +1,59 @@
 import re
 from django.core.management.base import BaseCommand
-
+from django.contrib.auth.models import User
 from nfo.models import Document
 
 
-def clean(title):
-    remove_pattern = '[^A-Za-z0-9\- ]'
-    return re.sub(remove_pattern, '', title)
-
-
 class Command(BaseCommand):
-    # Only keep alphabets, numbers, dash and space in document title
-    # - Document title will affects importwiki
     def handle(self, *args, **kwargs):
         documents = Document.objects.all()
-        count = Document.objects.count()
-        i = 0
-        for document in documents.iterator():
-            i += 1
-            print('Fixing title... {}/{}'.format(i, count))
-            document.title = clean(document.title)
-            document.save()
+        users = User.objects.filter(groups__name='judge')
+        for document in documents:
+            for user in users:
+                qs = document.tabelanswer_set.filter(judge=user)
+                if qs.count() > 1:
+                    merge_tabel_answer(qs)
+
+                # qs = document.wikianswer_set.filter(judge=user)
+                # if qs.count() > 1:
+                #     merge_wiki_answer(qs)
+
+
+def merge_tabel_answer(qs):
+    correct_categories = []
+    suggested_categories = ''
+    count = 0
+    for answer in qs.all():
+        correct_categories += answer.correct_categories.all()
+        if answer.suggested_categories and len(answer.suggested_categories) > 0:
+            count += 1
+            suggested_categories = answer.suggested_categories
+            if count > 1:
+                print(answer.pk)
+
+    for answer in qs.all():
+        if answer.dataset:
+            answer.correct_categories.set(correct_categories)
+            answer.suggested_categories = suggested_categories
+            answer.save()
+        else:
+            answer.delete()
+
+
+def merge_wiki_answer(qs):
+    suggested_categories = ''
+    count = 0
+    for answer in qs.all():
+        if answer.suggested_categories and len(answer.suggested_categories) > 0:
+            count += 1
+            suggested_categories = answer.suggested_categories
+            # print(suggested_categories)
+            if count > 1:
+                print(answer.pk)
+
+    for answer in qs.all():
+        if answer.dataset:
+            answer.suggested_categories = suggested_categories
+            answer.save()
+        else:
+            answer.delete()
