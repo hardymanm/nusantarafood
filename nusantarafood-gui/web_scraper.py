@@ -1,6 +1,7 @@
 import tkinter as tk
 
 
+# Custom text widget with scrollbar
 class Textbox(tk.Frame):
     def __init__(self, parent, height=3):
         tk.Frame.__init__(self, parent)
