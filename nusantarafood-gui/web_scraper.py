@@ -96,10 +96,10 @@ class App(tk.Tk):
         self.add_document_detail_label("Document Title (Cleaned)")
         self.add_document_detail_value("-")
         self.add_document_detail_label("Raw Content")
-        Textbox(self.document_detail_frame).pack()
+        Textbox(self.document_detail_frame, height=8).pack(pady=(0, 5))
 
         self.add_document_detail_label("Selected Content")
-        Textbox(self.document_detail_frame).pack()
+        Textbox(self.document_detail_frame, height=8).pack(pady=(0, 5))
 
         self.add_document_detail_label("Content Selector")
         self.add_textbox(self.document_detail_frame, height=1, pady=0)
