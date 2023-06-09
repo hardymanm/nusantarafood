@@ -1,6 +1,24 @@
 import tkinter as tk
 
 
+class Textbox(tk.Frame):
+    def __init__(self, parent, height=3):
+        tk.Frame.__init__(self, parent)
+
+        # Textbox for output
+        self.scrollbar = tk.Scrollbar(self)
+        self.scrollbar.pack(side="right", fill="y")
+
+        self.textbox = tk.Text(self, height=height)
+        self.textbox.pack(side="left")
+
+        self.textbox.config(yscrollcommand=self.scrollbar.set)
+        self.scrollbar.config(command=self.textbox.yview)
+
+    def get(self):
+        return self.textbox.get('1.0', 'end-1c')
+
+
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -56,10 +74,10 @@ class App(tk.Tk):
         self.add_document_detail_label("Document Title (Cleaned)")
         self.add_document_detail_value("-")
         self.add_document_detail_label("Raw Content")
-        self.add_textbox(self.document_detail_frame)
+        Textbox(self.document_detail_frame).pack()
 
         self.add_document_detail_label("Selected Content")
-        self.add_textbox(self.document_detail_frame)
+        Textbox(self.document_detail_frame).pack()
 
         self.add_document_detail_label("Content Selector")
         self.add_textbox(self.document_detail_frame, height=1, pady=0)
@@ -144,6 +162,9 @@ class App(tk.Tk):
         table_frame = tk.Frame(add_dataset_window, borderwidth=1, relief='solid')
         table_frame.grid(column=0, row=8, columnspan=2, sticky="news")
 
+        # Textbox for output
+        output_textbox = Textbox(add_dataset_window, height=10)
+        output_textbox.grid(column=0, row=9, columnspan=2, sticky="news")
         def add_row(row, num, page_title, content_length):
             tk.Label(table_frame, borderwidth=1, relief='solid', anchor="nw", width=5, text=num).grid(column=0, row=row, sticky="nw")
             tk.Label(table_frame, borderwidth=1, relief='solid', anchor="nw", width=50, text=page_title).grid(column=1, row=row, sticky="nw")
