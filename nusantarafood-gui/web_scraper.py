@@ -26,6 +26,28 @@ class App(tk.Tk):
         self.title("NusantaraFood - Web Scraper")
         self.geometry("1000x600")
 
+        # Login
+        self.login_frame = tk.Frame(self, bg="#bbbbbb")
+        self.login_frame.pack(fill='both')
+
+        tk.Label(self.login_frame, text="Host", bg="#bbbbbb").grid(column=0, row=0, padx=(5, 5), pady=20)
+        tk.Label(self.login_frame, text="Username", bg="#bbbbbb").grid(column=2, row=0, padx=(0, 5))
+        tk.Label(self.login_frame, text="Password", bg="#bbbbbb").grid(column=4, row=0, padx=(0, 5))
+
+        host_textbox = tk.Text(self.login_frame, padx=5, pady=5, height=1, width=40)
+        host_textbox.insert("1.0", "http://localhost:8000")
+        host_textbox.grid(column=1, row=0, padx=(0, 10))
+
+        username_textbox = tk.Text(self.login_frame, padx=5, pady=5, height=1, width=20)
+        host_textbox.insert("1.0", "admin")
+        username_textbox.grid(column=3, row=0, padx=(0, 10))
+
+        password_textbox = tk.Text(self.login_frame, padx=5, pady=5, height=1, width=20)
+        password_textbox.grid(column=5, row=0, padx=(0, 10))
+
+        login_button = tk.Button(self.login_frame, text="Login")
+        login_button.grid(column=6, row=0)
+
         # Dataset List Column
         self.dataset_list_frame = tk.Frame(self, padx=5, pady=5, bg="#bbbbbb")
         self.dataset_list_frame.pack(side="left", fill="y")
