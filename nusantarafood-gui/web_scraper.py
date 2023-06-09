@@ -159,26 +159,11 @@ class App(tk.Tk):
         start_button = tk.Button(add_dataset_window, text="Start Web Scraping")
         start_button.grid(column=1, row=7, sticky="nw", pady=(10, 5))
 
-        table_frame = tk.Frame(add_dataset_window, borderwidth=1, relief='solid')
-        table_frame.grid(column=0, row=8, columnspan=2, sticky="news")
+        tk.Label(add_dataset_window, text="Output").grid(column=0, row=8, sticky="wn", pady=(0, 5))
 
         # Textbox for output
         output_textbox = Textbox(add_dataset_window, height=10)
         output_textbox.grid(column=0, row=9, columnspan=2, sticky="news")
-        def add_row(row, num, page_title, content_length):
-            tk.Label(table_frame, borderwidth=1, relief='solid', anchor="nw", width=5, text=num).grid(column=0, row=row, sticky="nw")
-            tk.Label(table_frame, borderwidth=1, relief='solid', anchor="nw", width=50, text=page_title).grid(column=1, row=row, sticky="nw")
-            tk.Label(table_frame, borderwidth=1, relief='solid', anchor="nw", width=17, text=content_length).grid(column=2, row=row, sticky="nw")
-
-        def add_row2(num, page_title, content_length):
-            row_frame = tk.Frame(table_frame)
-            row_frame.pack(expand=True, fill="both")
-            tk.Label(row_frame, borderwidth=1, relief='solid', anchor="nw", padx=5, pady=3, width=5, text=num).pack(side="left")
-            tk.Label(row_frame, borderwidth=1, relief='solid', anchor="nw", padx=5, pady=3, text=page_title).pack(side="left", fill="x", expand=True)
-            tk.Label(row_frame, borderwidth=1, relief='solid', anchor="nw", padx=5, pady=3, width=17, text=content_length).pack(side="left")
-
-        add_row2("#", "Page Title", "Content Length")
-        add_row2("#", "Page Title", "Content Length")
 
 
 if __name__ == "__main__":
