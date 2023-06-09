@@ -144,7 +144,7 @@ class App(tk.Tk):
         def add_textbox(label, row):
             tk.Label(add_dataset_window, text=label).grid(column=0, row=row, sticky="w", pady=(0, 5), padx=(0, 10))
             widget = tk.Text(add_dataset_window, height=1, width=50, padx=5, pady=3)
-            widget.grid(column=1, row=row, sticky="ne", pady=(0, 5))
+            widget.grid(column=1, row=row, sticky="new", pady=(0, 5))
             return widget
 
         add_textbox("Dataset Name", 0)
@@ -157,7 +157,7 @@ class App(tk.Tk):
         add_textbox("Content", 6)
 
         start_button = tk.Button(add_dataset_window, text="Start Web Scraping")
-        start_button.grid(column=1, row=7, sticky="nw", pady=(10, 5))
+        start_button.grid(column=1, row=7, sticky="nw", pady=(10, 20))
 
         tk.Label(add_dataset_window, text="Output").grid(column=0, row=8, sticky="wn", pady=(0, 5))
 
