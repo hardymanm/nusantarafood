@@ -40,7 +40,7 @@ class App(tk.Tk):
         host_textbox.grid(column=1, row=0, padx=(0, 10))
 
         username_textbox = tk.Text(self.login_frame, padx=5, pady=5, height=1, width=20)
-        host_textbox.insert("1.0", "admin")
+        username_textbox.insert("1.0", "admin")
         username_textbox.grid(column=3, row=0, padx=(0, 10))
 
         password_textbox = tk.Text(self.login_frame, padx=5, pady=5, height=1, width=20)
