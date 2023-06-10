@@ -1,9 +1,8 @@
 from django.shortcuts import render
-from rest_framework import viewsets
-from rest_framework import permissions
-from rest_framework import pagination
-
 from nfo import serializers, models
+from rest_framework import pagination
+from rest_framework import permissions
+from rest_framework import viewsets
 
 
 class StandardResultsSetPagination(pagination.PageNumberPagination):
@@ -28,7 +27,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
     queryset = models.Dataset.objects.all()
     serializer_class = serializers.DatasetSerializer
     permission_classes = [permissions.IsAuthenticated]
-    pagination_class = StandardResultsSetPagination
+    pagination_class = None
 
 
 class DocumentViewSet(viewsets.ModelViewSet):
@@ -36,6 +35,8 @@ class DocumentViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.DocumentSerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
+    filterset_fields = ['dataset',]
+    pagination_class = None
 
 
 class FoodCategoryViewSet(viewsets.ModelViewSet):
