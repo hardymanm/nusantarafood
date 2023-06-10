@@ -7,15 +7,15 @@ import re
 
 # Custom text widget with scrollbar
 class Textbox(tk.Frame):
-    def __init__(self, parent, height=3):
+    def __init__(self, parent, height=3, **kwargs):
         tk.Frame.__init__(self, parent)
 
         # Textbox for output
         self.scrollbar = tk.Scrollbar(self)
         self.scrollbar.pack(side="right", fill="y")
 
-        self.textbox = tk.Text(self, height=height)
-        self.textbox.pack(side="left")
+        self.textbox = tk.Text(self, height=height, **kwargs)
+        self.textbox.pack(side="left", fill="x", expand=True)
 
         self.textbox.config(yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=self.textbox.yview)
@@ -29,6 +29,9 @@ class Textbox(tk.Frame):
     def delete(self, *args, **kwargs):
         return self.textbox.delete(*args, **kwargs)
 
+    def see(self, *args, **kwargs):
+        return self.textbox.see(*args, **kwargs)
+
 
 class Api:
     def __init__(self, host, username, password):
@@ -39,6 +42,10 @@ class Api:
     def get(self, path, **kwargs):
         url = urljoin(self.host, path)
         return requests.get(url, auth=(self.username, self.password), **kwargs)
+
+    def post(self, path, **kwargs):
+        url = urljoin(self.host, path)
+        return requests.post(url, auth=(self.username, self.password), **kwargs)
 
 
 class App(tk.Tk):
@@ -86,6 +93,7 @@ class App(tk.Tk):
         self.dataset_listbox.bind('<Up>', self.handle_dataset_selected)
 
         self.add_dataset_button = tk.Button(self.dataset_list_frame, text="Add Dataset", command=self.show_add_dataset_window)
+        self.add_dataset_button['state'] = 'disabled'
         self.add_dataset_button.pack(anchor="nw", pady=5)
 
         # Dataset Detail Column
@@ -137,6 +145,10 @@ class App(tk.Tk):
         self.apply_selector_button = tk.Button(self.document_detail_frame, text="Apply", state='disabled')
         self.apply_selector_button.pack(anchor="nw", pady=5)
 
+        self.start_button = None
+        self.stop_button = None
+        self.output_textbox = None
+
     def get_dataset_list(self):
         host = self.host_entry.get()
         username = self.username_entry.get()
@@ -148,6 +160,9 @@ class App(tk.Tk):
         except requests.exceptions.ConnectionError:
             messagebox.showerror('Connection Error', 'Failed to connect to host')
             return
+
+        # Allow add dataset because connect to host successful
+        self.add_dataset_button['state'] = 'normal'
 
         data = json.loads(response.text)
         if response.status_code != 200:
@@ -273,29 +288,63 @@ class App(tk.Tk):
         self.add_dataset_button['state'] = 'disabled'
 
         # Widgets
-        def add_textbox(label, row):
+        def add_entry(label, row):
             tk.Label(add_dataset_window, text=label).grid(column=0, row=row, sticky="w", pady=(0, 5), padx=(0, 10))
-            widget = tk.Text(add_dataset_window, height=1, width=50, padx=5, pady=3)
+            widget = tk.Entry(add_dataset_window, width=50)
             widget.grid(column=1, row=row, sticky="new", pady=(0, 5))
             return widget
 
-        add_textbox("Dataset Name", 0)
-        add_textbox("Max Num. of Document", 1)
-        add_textbox("Starting Url", 2)
+        dataset_name_entry = add_entry("Dataset Name", 0)
+        max_document_count_entry = add_entry("Max Num. of Document", 1)
+        start_url_entry = add_entry("Starting Url", 2)
 
-        tk.Label(add_dataset_window, text="Regex Rule").grid(column=0, row=3, sticky="nw", pady=(20, 5))
-        add_textbox("Url", 4)
-        add_textbox("Title", 5)
-        add_textbox("Content", 6)
+        tk.Label(add_dataset_window, text="Regex Rules").grid(column=0, row=3, sticky="nw", pady=(20, 5))
+        regex_url_entry = add_entry("Url", 4)
+        regex_title_entry = add_entry("Title", 5)
+        regex_content_entry = add_entry("Content", 6)
 
-        start_button = tk.Button(add_dataset_window, text="Start Web Scraping")
-        start_button.grid(column=1, row=7, sticky="nw", pady=(10, 20))
+        def handle_start_scraping():
+            self.start_button['state'] = 'disabled'
+            self.stop_button['state'] = 'normal'
 
-        tk.Label(add_dataset_window, text="Output").grid(column=0, row=8, sticky="wn", pady=(0, 5))
+            # create dataset
+            dataset_name = dataset_name_entry.get()
+
+            payload = {'name': dataset_name}
+            response = self.api.post('/api/datasets/', data=payload)
+            data = json.loads(response.text)
+
+            self.output_textbox.insert('end', 'Sending request...\nPOST:/api/datasets/\nData: {}\n'.format(payload))
+            if response.status_code not in (200, 201):
+                self.output_textbox.insert('end', '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ERROR ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+                self.output_textbox.insert('end', '{}\n'.format(json.dumps(json.loads(response.text), indent=2)))
+                self.output_textbox.insert('end', '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+                self.output_textbox.see('end')
+                return
+
+            self.output_textbox.insert('end', 'Dataset created\n')
+            self.output_textbox.see('end')
+
+        def handle_stop_scraping():
+            self.start_button['state'] = 'normal'
+            self.stop_button['state'] = 'disabled'
+            print("stop scraping")
+
+        button_frame = tk.Frame(add_dataset_window)
+        button_frame.grid(column=1, row=7, sticky="nw", pady=(10, 5))
+
+        self.start_button = tk.Button(button_frame, text="Start Web Scraping", command=handle_start_scraping)
+        self.start_button.pack(side='left', padx=(0, 5))
+
+        self.stop_button = tk.Button(button_frame, text="Stop", command=handle_stop_scraping)
+        self.stop_button['state'] = 'disabled'
+        self.stop_button.pack(side='left')
+
+        tk.Label(add_dataset_window, text="Output").grid(column=0, row=9, sticky="wn", pady=(0, 5))
 
         # Textbox for output
-        output_textbox = Textbox(add_dataset_window, height=10)
-        output_textbox.grid(column=0, row=9, columnspan=2, sticky="news")
+        self.output_textbox = Textbox(add_dataset_window, height=10, font=('DejaVu Sans Mono', 9, 'normal'), bg='black', fg='white')
+        self.output_textbox.grid(column=0, row=10, columnspan=2, sticky="news")
 
 
 if __name__ == "__main__":
