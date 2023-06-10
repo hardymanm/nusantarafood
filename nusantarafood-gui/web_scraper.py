@@ -1,5 +1,9 @@
 import tkinter as tk
-
+from tkinter import messagebox
+import requests
+from urllib.parse import urljoin
+import json
+import re
 
 # Custom text widget with scrollbar
 class Textbox(tk.Frame):
@@ -19,10 +23,28 @@ class Textbox(tk.Frame):
     def get(self):
         return self.textbox.get('1.0', 'end-1c')
 
+    def insert(self, *args, **kwargs):
+        return self.textbox.insert(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        return self.textbox.delete(*args, **kwargs)
+
+
+class Api:
+    def __init__(self, host, username, password):
+        self.host = host
+        self.username = username
+        self.password = password
+
+    def get(self, path, **kwargs):
+        url = urljoin(self.host, path)
+        return requests.get(url, auth=(self.username, self.password), **kwargs)
+
 
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
+        self.api = None
 
         self.title("NusantaraFood - Web Scraper")
         self.geometry("1000x600")
@@ -31,23 +53,24 @@ class App(tk.Tk):
         self.login_frame = tk.Frame(self, bg="#bbbbbb")
         self.login_frame.pack(fill='both')
 
-        tk.Label(self.login_frame, text="Host", bg="#bbbbbb").grid(column=0, row=0, padx=(5, 5), pady=20)
+        tk.Label(self.login_frame, text="Host", bg="#bbbbbb").grid(column=0, row=0, padx=(5, 5), pady=10)
         tk.Label(self.login_frame, text="Username", bg="#bbbbbb").grid(column=2, row=0, padx=(0, 5))
         tk.Label(self.login_frame, text="Password", bg="#bbbbbb").grid(column=4, row=0, padx=(0, 5))
 
-        host_textbox = tk.Text(self.login_frame, padx=5, pady=5, height=1, width=40)
-        host_textbox.insert("1.0", "http://localhost:8000")
-        host_textbox.grid(column=1, row=0, padx=(0, 10))
+        self.host_entry = tk.Entry(self.login_frame, width=40)
+        self.host_entry.insert(0, "http://localhost:8000")
+        self.host_entry.grid(column=1, row=0, padx=(0, 10))
 
-        username_textbox = tk.Text(self.login_frame, padx=5, pady=5, height=1, width=20)
-        username_textbox.insert("1.0", "admin")
-        username_textbox.grid(column=3, row=0, padx=(0, 10))
+        self.username_entry = tk.Entry(self.login_frame, width=20)
+        self.username_entry.insert(0, "admin")
+        self.username_entry.grid(column=3, row=0, padx=(0, 10))
 
-        password_textbox = tk.Text(self.login_frame, padx=5, pady=5, height=1, width=20)
-        password_textbox.grid(column=5, row=0, padx=(0, 10))
+        self.password_entry = tk.Entry(self.login_frame, width=20, show="*")
+        self.password_entry.insert(0, "nusantarafood")
+        self.password_entry.grid(column=5, row=0, padx=(0, 10))
 
-        login_button = tk.Button(self.login_frame, text="Login")
-        login_button.grid(column=6, row=0)
+        self.login_button = tk.Button(self.login_frame, text="Login", pady=1, command=self.get_dataset_list)
+        self.login_button.grid(column=6, row=0)
 
         # Dataset List Column
         self.dataset_list_frame = tk.Frame(self, padx=5, pady=5, bg="#bbbbbb")
@@ -58,6 +81,9 @@ class App(tk.Tk):
 
         self.dataset_list_variable = tk.Variable(value=[])
         self.dataset_listbox = self.add_listbox(self.dataset_list_frame, self.dataset_list_variable)
+        self.dataset_listbox.bind('<<ListboxSelect>>', self.handle_dataset_selected)
+        self.dataset_listbox.bind('<Down>', self.handle_dataset_selected)
+        self.dataset_listbox.bind('<Up>', self.handle_dataset_selected)
 
         self.add_dataset_button = tk.Button(self.dataset_list_frame, text="Add Dataset", command=self.show_add_dataset_window)
         self.add_dataset_button.pack(anchor="nw", pady=5)
@@ -68,13 +94,11 @@ class App(tk.Tk):
         self.dataset_detail_frame.pack_propagate(0)
 
         self.add_dataset_detail_label("Dataset Name")
-        self.add_dataset_detail_value("-")
+        self.dataset_name_label = self.add_dataset_detail_value("-")
         self.add_dataset_detail_label("Source")
-        self.add_dataset_detail_value("-")
-        self.add_dataset_detail_label("Stopwords Count")
-        self.add_dataset_detail_value("-")
+        self.dataset_source_label = self.add_dataset_detail_value("-")
         self.add_dataset_detail_label("Document Count")
-        self.add_dataset_detail_value("-")
+        self.dataset_document_count_label = self.add_dataset_detail_value("-")
 
         # Document List Column
         self.document_list_frame = tk.Frame(self, padx=5, pady=5, bg="#dddddd")
@@ -84,6 +108,9 @@ class App(tk.Tk):
 
         self.document_list_variable = tk.Variable(value=[])
         self.document_listbox = self.add_listbox(self.document_list_frame, self.document_list_variable, width=25)
+        self.document_listbox.bind('<<ListboxSelect>>', self.handle_document_selected)
+        self.document_listbox.bind('<Down>', self.handle_document_selected)
+        self.document_listbox.bind('<Up>', self.handle_document_selected)
 
         self.delete_document_button = tk.Button(self.document_list_frame, text="Delete Document", state="disabled")
         self.delete_document_button.pack(anchor="nw", pady=5)
@@ -93,20 +120,102 @@ class App(tk.Tk):
         self.document_detail_frame.pack(side="left", fill="both")
 
         self.add_document_detail_label("Document Title")
-        self.add_document_detail_value("-")
+        self.document_title_label = self.add_document_detail_value("-")
         self.add_document_detail_label("Document Title (Cleaned)")
-        self.add_document_detail_value("-")
+        self.document_title_cleaned_label = self.add_document_detail_value("-")
         self.add_document_detail_label("Raw Content")
-        Textbox(self.document_detail_frame, height=8).pack(pady=(0, 5))
+        self.document_raw_content_textbox = Textbox(self.document_detail_frame, height=8)
+        self.document_raw_content_textbox.pack(pady=(0, 5))
 
         self.add_document_detail_label("Selected Content")
-        Textbox(self.document_detail_frame, height=8).pack(pady=(0, 5))
+        self.document_content_textbox = Textbox(self.document_detail_frame, height=8)
+        self.document_content_textbox.pack(pady=(0, 5))
 
         self.add_document_detail_label("Content Selector")
         self.add_textbox(self.document_detail_frame, height=1, pady=0)
 
         self.apply_selector_button = tk.Button(self.document_detail_frame, text="Apply", state='disabled')
         self.apply_selector_button.pack(anchor="nw", pady=5)
+
+    def get_dataset_list(self):
+        host = self.host_entry.get()
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+
+        self.api = Api(host, username, password)
+        try:
+            response = self.api.get('/api/datasets/?fields=id,name')
+        except requests.exceptions.ConnectionError:
+            messagebox.showerror('Connection Error', 'Failed to connect to host')
+            return
+
+        data = json.loads(response.text)
+        if response.status_code != 200:
+            messagebox.showerror('error', data['detail'])
+            return
+
+        self.dataset_listbox.delete(0, 'end')
+        for item in data:
+            text = '#{} - {}'.format(item['id'], item['name'])
+            self.dataset_listbox.insert('end', text)
+
+    @staticmethod
+    def get_selected_listbox_item(listbox):
+        selected_index = listbox.curselection()
+        if not selected_index:
+            return None, None
+
+        selected_item = listbox.get(selected_index[0])
+        matches = re.findall(r'^#(\d+) - (.+)$', selected_item)
+        if len(matches) == 0:
+            return None, None
+
+        return matches[0]
+
+    def handle_dataset_selected(self, event):
+        dataset_id, dataset_name = self.get_selected_listbox_item(self.dataset_listbox)
+        if not dataset_id:
+            return
+
+        # Update document list
+        url = '/api/documents/?dataset={}&fields=id,title'.format(dataset_id)
+        response = self.api.get(url)
+        data = json.loads(response.text)
+        if response.status_code != 200:
+            messagebox.showerror('error', data['detail'])
+            return
+
+        self.document_listbox.delete(0, 'end')
+        for item in data:
+            text = '#{} - {}'.format(item['id'], item['title'])
+            self.document_listbox.insert('end', text)
+
+        # Update dataset details
+        self.dataset_name_label.config(text=dataset_name)
+        self.dataset_document_count_label.config(text='{} items'.format(len(data)))
+
+    def handle_document_selected(self, event):
+        document_id, document_name = self.get_selected_listbox_item(self.document_listbox)
+
+        if not document_id:
+            return
+
+        # Update document list
+        url = '/api/documents/{}'.format(document_id)
+        response = self.api.get(url)
+        data = json.loads(response.text)
+        if response.status_code != 200:
+            messagebox.showerror('error', data['detail'])
+            return
+
+        self.document_title_label.config(text=data['title'])
+        self.document_title_cleaned_label.config(text=data['title_clean'])
+        self.document_content_textbox.delete('1.0', 'end')
+        self.document_content_textbox.insert('1.0', data['content'])
+
+        if 'raw_content' in data:
+            self.document_raw_content_textbox.delete('1.0', 'end')
+            self.document_raw_content_textbox.insert('1.0', data['raw_content'])
 
     def add_dataset_detail_label(self, text, fg="#000000", pady=(5, 0)):
         widget = tk.Label(self.dataset_detail_frame, text=text, anchor="nw", bg="#cccccc", width=30, fg=fg)
