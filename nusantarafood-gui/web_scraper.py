@@ -9,6 +9,7 @@ import re
 import hashlib
 import os
 from bs4 import BeautifulSoup
+import types
 
 
 # Custom text widget with scrollbar
@@ -42,6 +43,78 @@ class Textbox(tk.Frame):
     def see(self, *args, **kwargs):
         return self.textbox.see(*args, **kwargs)
 
+    def set_text(self, text):
+        self.textbox.delete('1.0', 'end')
+        self.textbox.insert('1.0', text)
+
+
+def Listbox(parent, variable, width=25, height=25, handle_select=None, **kwargs):
+    # Frame to hold listbox and scrollbar
+    listbox_frame = tk.Frame(parent, bg="#bbbbbb")
+    listbox_frame.pack()
+
+    # Listbox
+    listbox = tk.Listbox(listbox_frame, width=width, height=height, listvariable=variable, **kwargs)
+    listbox.pack(side="left")
+
+    # scrollbar
+    listbox_scroll = tk.Scrollbar(listbox_frame)
+    listbox_scroll.pack(side="right", fill="y")
+
+    listbox.config(yscrollcommand=listbox_scroll.set)
+    listbox_scroll.config(command=listbox.yview)
+
+    if handle_select:
+        listbox.bind('<<ListboxSelect>>', handle_select)
+        listbox.bind('<Down>', handle_select)
+        listbox.bind('<Up>', handle_select)
+
+    return listbox
+
+
+def DbListbox(*args, **kwargs):
+    listbox = Listbox(*args, **kwargs)
+
+    def get_selection(self):
+        selected_index = listbox.curselection()
+        if not selected_index:
+            return None, None
+
+        selected_item = listbox.get(selected_index[0])
+        matches = re.findall(r'^#(\d+) - (.+)$', selected_item)
+        if len(matches) == 0:
+            return None, None
+
+        return matches[0]
+
+    listbox.get_selection = types.MethodType(get_selection, listbox)
+
+    return listbox
+
+
+def Entry(*args, default='', **kwargs):
+    entry = tk.Entry(*args, **kwargs)
+    entry.insert(0, default)
+    return entry
+
+
+def StackedLabels(*args, **kwargs):
+    parent = args[0]
+
+    labels = []
+    for i, text in enumerate(args[1:]):
+        widget = tk.Label(parent, text=text, anchor="nw", **kwargs)
+        if i == 0:
+            widget.pack(pady=(5, 0), fill="x")
+        elif i == len(args[1:]) - 1:
+            widget.pack(pady=(0, 5), fill="x")
+        else:
+            widget.pack(fill="x")
+
+        labels.append(widget)
+
+    return labels
+
 
 class Api:
     def __init__(self, host, username, password):
@@ -74,16 +147,13 @@ class App(tk.Tk):
         tk.Label(self.login_frame, text="Username", bg="#bbbbbb").grid(column=2, row=0, padx=(0, 5))
         tk.Label(self.login_frame, text="Password", bg="#bbbbbb").grid(column=4, row=0, padx=(0, 5))
 
-        self.host_entry = tk.Entry(self.login_frame, width=40)
-        self.host_entry.insert(0, "http://localhost:8000")
+        self.host_entry = Entry(self.login_frame, width=40, default="http://localhost:8000")
         self.host_entry.grid(column=1, row=0, padx=(0, 10))
 
-        self.username_entry = tk.Entry(self.login_frame, width=20)
-        self.username_entry.insert(0, "admin")
+        self.username_entry = Entry(self.login_frame, width=20, default="admin")
         self.username_entry.grid(column=3, row=0, padx=(0, 10))
 
-        self.password_entry = tk.Entry(self.login_frame, width=20, show="*")
-        self.password_entry.insert(0, "nusantarafood")
+        self.password_entry = Entry(self.login_frame, width=20, show="*", default="")
         self.password_entry.grid(column=5, row=0, padx=(0, 10))
 
         self.login_button = tk.Button(self.login_frame, text="Login", pady=1, command=self.get_dataset_list)
@@ -97,10 +167,7 @@ class App(tk.Tk):
         self.dataset_label.pack(fill="x", pady=5)
 
         self.dataset_list_variable = tk.Variable(value=[])
-        self.dataset_listbox = self.add_listbox(self.dataset_list_frame, self.dataset_list_variable)
-        self.dataset_listbox.bind('<<ListboxSelect>>', self.handle_dataset_selected)
-        self.dataset_listbox.bind('<Down>', self.handle_dataset_selected)
-        self.dataset_listbox.bind('<Up>', self.handle_dataset_selected)
+        self.dataset_listbox = DbListbox(self.dataset_list_frame, self.dataset_list_variable, handle_select=self.handle_dataset_selected)
 
         self.add_dataset_button = tk.Button(self.dataset_list_frame, text="Add Dataset", command=self.show_add_dataset_window)
         self.add_dataset_button['state'] = 'disabled'
@@ -111,12 +178,9 @@ class App(tk.Tk):
         self.dataset_detail_frame.pack(side="left", fill="y")
         self.dataset_detail_frame.pack_propagate(0)
 
-        self.add_dataset_detail_label("Dataset Name")
-        self.dataset_name_label = self.add_dataset_detail_value("-")
-        self.add_dataset_detail_label("Source")
-        self.dataset_source_label = self.add_dataset_detail_value("-")
-        self.add_dataset_detail_label("Document Count")
-        self.dataset_document_count_label = self.add_dataset_detail_value("-")
+        _, self.dataset_name_label = StackedLabels(self.dataset_detail_frame, "Dataset Name:", "-", bg="#cccccc", width=30)
+        _, self.dataset_source_label = StackedLabels(self.dataset_detail_frame, "Source:", "-", bg="#cccccc", width=30)
+        _, self.dataset_document_count_label = StackedLabels(self.dataset_detail_frame, "Document Count:", "-", bg="#cccccc", width=30)
 
         # Document List Column
         self.document_list_frame = tk.Frame(self, padx=5, pady=5, bg="#dddddd")
@@ -125,10 +189,7 @@ class App(tk.Tk):
         tk.Label(self.document_list_frame, text="Document List", anchor="nw", bg="#dddddd").pack(pady=5, fill="x")
 
         self.document_list_variable = tk.Variable(value=[])
-        self.document_listbox = self.add_listbox(self.document_list_frame, self.document_list_variable, width=25)
-        self.document_listbox.bind('<<ListboxSelect>>', self.handle_document_selected)
-        self.document_listbox.bind('<Down>', self.handle_document_selected)
-        self.document_listbox.bind('<Up>', self.handle_document_selected)
+        self.document_listbox = DbListbox(self.document_list_frame, self.document_list_variable, width=25, handle_select=self.handle_document_selected)
 
         self.delete_document_button = tk.Button(self.document_list_frame, text="Delete Document", state="disabled")
         self.delete_document_button.pack(anchor="nw", pady=5)
@@ -137,23 +198,16 @@ class App(tk.Tk):
         self.document_detail_frame = tk.Frame(self, padx=5, pady=5, bg="#eeeeee")
         self.document_detail_frame.pack(side="left", fill="both")
 
-        self.add_document_detail_label("Document Title")
-        self.document_title_label = self.add_document_detail_value("-")
-        self.add_document_detail_label("Document Title (Cleaned)")
-        self.document_title_cleaned_label = self.add_document_detail_value("-")
-        self.add_document_detail_label("Raw Content")
+        _, self.document_title_label = StackedLabels(self.document_detail_frame, "Document Title:", "-", bg="#eeeeee", width=35)
+        _, self.document_title_cleaned_label = StackedLabels(self.document_detail_frame, "Document Title (Cleaned):", "-", bg="#eeeeee", width=35)
+
+        tk.Label(self.document_detail_frame, text="Raw Content", anchor="nw", bg="#eeeeee", width=35).pack(pady=(5, 0), fill="x")
         self.document_raw_content_textbox = Textbox(self.document_detail_frame, height=8)
         self.document_raw_content_textbox.pack(pady=(0, 5))
 
-        self.add_document_detail_label("Selected Content")
+        tk.Label(self.document_detail_frame, text="Content", anchor="nw", bg="#eeeeee", width=35).pack(pady=(5, 0), fill="x")
         self.document_content_textbox = Textbox(self.document_detail_frame, height=8)
         self.document_content_textbox.pack(pady=(0, 5))
-
-        self.add_document_detail_label("Content Selector")
-        self.add_textbox(self.document_detail_frame, height=1, pady=0)
-
-        self.apply_selector_button = tk.Button(self.document_detail_frame, text="Apply", state='disabled')
-        self.apply_selector_button.pack(anchor="nw", pady=5)
 
         self.start_button = None
         self.stop_button = None
@@ -189,21 +243,8 @@ class App(tk.Tk):
             text = '#{} - {}'.format(item['id'], item['name'])
             self.dataset_listbox.insert('end', text)
 
-    @staticmethod
-    def get_selected_listbox_item(listbox):
-        selected_index = listbox.curselection()
-        if not selected_index:
-            return None, None
-
-        selected_item = listbox.get(selected_index[0])
-        matches = re.findall(r'^#(\d+) - (.+)$', selected_item)
-        if len(matches) == 0:
-            return None, None
-
-        return matches[0]
-
     def handle_dataset_selected(self, event):
-        dataset_id, dataset_name = self.get_selected_listbox_item(self.dataset_listbox)
+        dataset_id, dataset_name = self.dataset_listbox.get_selection()
         if not dataset_id:
             return
 
@@ -225,7 +266,7 @@ class App(tk.Tk):
         self.dataset_document_count_label.config(text='{} items'.format(len(data)))
 
     def handle_document_selected(self, event):
-        document_id, document_name = self.get_selected_listbox_item(self.document_listbox)
+        document_id, document_name = self.document_listbox.get_selection()
 
         # Do nothing when document selection empty
         if not document_id:
@@ -241,53 +282,10 @@ class App(tk.Tk):
 
         self.document_title_label.config(text=data['title'])
         self.document_title_cleaned_label.config(text=data['title_clean'])
-        self.document_content_textbox.delete('1.0', 'end')
-        self.document_content_textbox.insert('1.0', data['content'])
+        self.document_content_textbox.set_text(data['content'])
 
         if 'raw_content' in data:
-            self.document_raw_content_textbox.delete('1.0', 'end')
-            self.document_raw_content_textbox.insert('1.0', data['raw_content'])
-
-    def add_dataset_detail_label(self, text, fg="#000000", pady=(5, 0)):
-        widget = tk.Label(self.dataset_detail_frame, text=text, anchor="nw", bg="#cccccc", width=30, fg=fg)
-        widget.pack(pady=pady, fill="x")
-        return widget
-
-    def add_dataset_detail_value(self, text):
-        return self.add_dataset_detail_label(text, fg="#666666", pady=(0, 5))
-
-    def add_document_detail_label(self, text, fg="#000000", pady=(5, 0)):
-        widget = tk.Label(self.document_detail_frame, text=text, anchor="nw", bg="#eeeeee", width=35, fg=fg)
-        widget.pack(pady=pady, fill="x")
-        return widget
-
-    def add_document_detail_value(self, text):
-        return self.add_document_detail_label(text, fg="#666666", pady=(0, 5))
-
-    @staticmethod
-    def add_textbox(parent, height=8, pady=(0, 5)):
-        widget = tk.Text(parent, height=height)
-        widget.pack(pady=pady)
-        return widget
-
-    @staticmethod
-    def add_listbox(parent, variable, width=25, height=25):
-        # Frame to hold listbox and scrollbar
-        listbox_frame = tk.Frame(parent, bg="#bbbbbb")
-        listbox_frame.pack()
-
-        # Listbox
-        listbox = tk.Listbox(listbox_frame, width=width, height=height, listvariable=variable)
-        listbox.pack(side="left")
-
-        # scrollbar
-        listbox_scroll = tk.Scrollbar(listbox_frame)
-        listbox_scroll.pack(side="right", fill="y")
-
-        listbox.config(yscrollcommand=listbox_scroll.set)
-        listbox_scroll.config(command=listbox.yview)
-
-        return listbox
+            self.document_raw_content_textbox.set_text(data['raw_content'])
 
     # Sub window
     def show_add_dataset_window(self):
