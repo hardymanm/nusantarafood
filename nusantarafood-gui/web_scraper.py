@@ -342,7 +342,7 @@ class App(tk.Tk):
         url_not_contains_entry, url_not_var = add_rule_entry("Url not contains", 6)
         title_contains_entry, title_var = add_rule_entry("Title contains", 8)
         title_not_contains_entry, title_not_var = add_rule_entry("Title not contains", 10)
-        body_selector_entry = add_entry('Body selector', 12)
+        body_selector_entry = add_entry('Body selector', 12, pady=(20,5))
         body_contains_entry, body_var = add_rule_entry("Body contains", 13)
         body_not_contains_entry, body_not_var = add_rule_entry("Body not contains", 15)
 
@@ -390,7 +390,7 @@ class App(tk.Tk):
 
             return result
 
-        def scrape_webpage(thread_id, url_rule, url_opt, url_not_rule, url_not_opt, title_rule, title_opt, title_not_rule, title_not_opt, body_selector, body_rule, body_opt, body_not_rule, body_not_opt):
+        def scrape_webpage(thread_id, save_function, url_rule, url_opt, url_not_rule, url_not_opt, title_rule, title_opt, title_not_rule, title_not_opt, body_selector, body_rule, body_opt, body_not_rule, body_not_opt):
             while len(self.url_queue):
                 url = None
                 with self.scraping_lock:
@@ -445,6 +445,9 @@ class App(tk.Tk):
                                 self.matched_document.append({'filename': filename, 'body_selector': body_selector, 'title': title.text, 'url': url})
                                 print(f'{thread_id} -- KEEP matched title and body rule')
 
+                                content = '\n'.join([el.text for el in body])
+                                save_function(url, title, title, content)
+
                         links = soup.find_all('a')
                         new_urls = [link.get('href') for link in links]
 
@@ -473,8 +476,6 @@ class App(tk.Tk):
                                 self.url_queue.append(new_url)
 
 
-
-
         def handle_start_scraping():
             self.start_button['state'] = 'disabled'
             self.stop_button['state'] = 'normal'
@@ -482,17 +483,17 @@ class App(tk.Tk):
             # create dataset
             dataset_name = dataset_name_entry.get()
 
-            # payload = {'name': dataset_name}
-            # response = self.api.post('/api/datasets/', data=payload)
-            # data = json.loads(response.text)
-            #
-            # self.output_textbox.insert_end('Sending request...\nPOST:/api/datasets/\nData: {}\n'.format(payload))
-            # if response.status_code not in (200, 201):
-            #     self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ERROR ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
-            #     self.output_textbox.insert_end('{}\n'.format(json.dumps(json.loads(response.text), indent=2)))
-            #     self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
-            #     handle_stop_scraping()
-            #     return
+            payload = {'name': dataset_name}
+            response = self.api.post('/api/datasets/', data=payload)
+            dataset = json.loads(response.text)
+
+            self.output_textbox.insert_end('Sending request...\nPOST:/api/datasets/\nData: {}\n'.format(payload))
+            if response.status_code not in (200, 201):
+                self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ERROR ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+                self.output_textbox.insert_end('{}\n'.format(json.dumps(json.loads(response.text), indent=2)))
+                self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+                handle_stop_scraping()
+                return
 
             self.output_textbox.insert_end('Dataset created\n')
             self.url_queue.append(start_url_entry.get())
@@ -513,7 +514,21 @@ class App(tk.Tk):
             body_not_contains = body_not_contains_entry.get()
             body_not_contains_opt = body_not_var.get()
 
-            thread_args = (url_contains, url_contains_opt, url_not_contains, url_not_contains_opt,
+            def save_function(document_url, title, title_clean, raw_content):
+                resp = self.api.post('/api/documents/', data={'url': document_url, 'title': title, 'title_clean': title_clean, 'raw_content': raw_content, 'content': raw_content, 'dataset': dataset['id']})
+
+                self.output_textbox.insert_end(f'Sending request...\nPOST:/api/documents/\n')
+                if resp.status_code not in (200, 201):
+                    self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ERROR ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+                    self.output_textbox.insert_end('{}\n'.format(json.dumps(json.loads(resp.text), indent=2)))
+                    self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+                    handle_stop_scraping()
+                    return
+
+                self.output_textbox.insert_end('Document created\n')
+
+            thread_args = (save_function,
+                           url_contains, url_contains_opt, url_not_contains, url_not_contains_opt,
                            title_contains, title_contains_opt, title_not_contains, title_not_contains_opt,
                            body_selector, body_contains, body_contains_opt, body_not_contains, body_not_contains_opt)
 
