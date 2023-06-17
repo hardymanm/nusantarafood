@@ -551,15 +551,27 @@ class App(tk.Tk):
             self.stop_button['state'] = 'disabled'
             print("stop scraping")
 
+        def handle_save_setting():
+            pass
+
+        def handle_load_setting():
+            pass
+
         button_frame = tk.Frame(add_dataset_window)
         button_frame.grid(column=1, row=100, sticky="nw", pady=(10, 5))
 
         self.start_button = tk.Button(button_frame, text="Start Web Scraping", command=handle_start_scraping)
-        self.start_button.pack(side='left', padx=(0, 5))
+        self.start_button.pack(side='left')
 
         self.stop_button = tk.Button(button_frame, text="Stop", command=handle_stop_scraping)
         self.stop_button['state'] = 'disabled'
         self.stop_button.pack(side='left')
+
+        self.load_setting_button = tk.Button(button_frame, text="Load Setting", command=handle_load_setting)
+        self.load_setting_button.pack(side='left', padx=(20, 0))
+
+        self.save_setting_button = tk.Button(button_frame, text="Save", command=handle_save_setting)
+        self.save_setting_button.pack(side='left')
 
         tk.Label(add_dataset_window, text="Output").grid(column=0, row=101, sticky="wn", pady=(0, 5))
 
