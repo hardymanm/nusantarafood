@@ -131,10 +131,24 @@ class Api:
         return requests.post(url, auth=(self.username, self.password), **kwargs)
 
 
+def load_env(filename):
+    with open(filename, 'r') as env_file:
+        lines = env_file.read().splitlines()
+
+    settings = dict()
+    for line in lines:
+        if line and line[0] != '#':
+            key, value = line.split('=', 1)
+            settings[key] = value
+
+    return settings
+
+
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.api = None
+        self.settings = load_env('settings.env')
 
         self.title("NusantaraFood - Web Scraper")
         self.geometry("1000x600")
@@ -147,13 +161,13 @@ class App(tk.Tk):
         tk.Label(self.login_frame, text="Username", bg="#bbbbbb").grid(column=2, row=0, padx=(0, 5))
         tk.Label(self.login_frame, text="Password", bg="#bbbbbb").grid(column=4, row=0, padx=(0, 5))
 
-        self.host_entry = Entry(self.login_frame, width=40, default="http://localhost:8000")
+        self.host_entry = Entry(self.login_frame, width=40, default=self.settings['host'])
         self.host_entry.grid(column=1, row=0, padx=(0, 10))
 
-        self.username_entry = Entry(self.login_frame, width=20, default="admin")
+        self.username_entry = Entry(self.login_frame, width=20, default=self.settings['username'])
         self.username_entry.grid(column=3, row=0, padx=(0, 10))
 
-        self.password_entry = Entry(self.login_frame, width=20, show="*", default="")
+        self.password_entry = Entry(self.login_frame, width=20, show="*", default=self.settings['password'])
         self.password_entry.grid(column=5, row=0, padx=(0, 10))
 
         self.login_button = tk.Button(self.login_frame, text="Login", pady=1, command=self.get_dataset_list)
