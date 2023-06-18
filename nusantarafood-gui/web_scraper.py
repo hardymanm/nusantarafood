@@ -154,6 +154,10 @@ class Api:
         url = urljoin(self.host, path)
         return requests.post(url, auth=(self.username, self.password), **kwargs)
 
+    def delete(self, path, **kwargs):
+        url = urljoin(self.host, path)
+        return requests.delete(url, auth=(self.username, self.password), **kwargs)
+
 
 # ------------------------------------------
 # Utility Functions
@@ -608,7 +612,7 @@ class App(tk.Tk):
         self.document_list_variable = tk.Variable(value=[])
         self.document_listbox = DbListbox(self.document_list_frame, self.document_list_variable, width=25, handle_select=self.handle_document_selected)
 
-        self.delete_document_button = tk.Button(self.document_list_frame, text="Delete Document", state="disabled")
+        self.delete_document_button = tk.Button(self.document_list_frame, text="Delete Document", command=self.handle_delete_document)
         self.delete_document_button.pack(anchor="nw", pady=5)
 
         # ------------------------------------------
@@ -697,10 +701,29 @@ class App(tk.Tk):
         if 'raw_content' in data:
             self.document_raw_content_textbox.set_text(data['raw_content'])
 
+    def handle_delete_document(self):
+        document_id, document_name = self.document_listbox.get_selection()
+
+        # Do nothing when document selection empty
+        if not document_id:
+            return
+
+        # Delete document
+        url = '/api/documents/{}'.format(document_id)
+        response = self.api.delete(url)
+        if response.status_code not in (200, 204, ):
+            if response.text:
+                data = json.loads(response.text)
+                messagebox.showerror('error', data['detail'])
+            return
+
+        # Update document list
+        index = self.document_listbox.curselection()
+        self.document_listbox.delete(index)
+
     # Sub window
     def handle_show_add_dataset_window(self):
         self.add_dataset_window = AddDatasetWindow(self)
-
 
 if __name__ == "__main__":
     app = App()
