@@ -45,7 +45,8 @@ class Textbox(tk.Frame):
 
     def set_text(self, text):
         self.textbox.delete('1.0', 'end')
-        self.textbox.insert('1.0', text)
+        if text:
+            self.textbox.insert('1.0', text)
 
 
 def Listbox(parent, variable, width=25, height=25, handle_select=None, **kwargs):
@@ -116,6 +117,29 @@ def StackedLabels(*args, **kwargs):
     return labels
 
 
+def EntryRow(parent, text="", row=None, pady=(0, 5), **kwargs):
+    tk.Label(parent, text=text).grid(column=0, row=row, sticky="w", pady=pady, padx=(0, 10))
+    widget = tk.Entry(parent, width=50, **kwargs)
+    widget.grid(column=1, row=row, sticky="new", pady=pady)
+    return widget
+
+
+def RuleRadioInputRow(parent, label, row):
+    widget = EntryRow(parent, label, row)
+
+    frame = tk.Frame(parent)
+    frame.grid(column=1, row=row + 1, sticky="new", pady=(0, 5))
+    var = tk.StringVar(value="split")
+    split_comma_option = tk.Radiobutton(frame, variable=var, value="split", text="split comma")
+    split_comma_option.pack(side="left")
+    re_match_option = tk.Radiobutton(frame, variable=var, value="re.match", text="re.match")
+    re_match_option.pack(side="left")
+    re_search_option = tk.Radiobutton(frame, variable=var, value="re.search", text="re.search")
+    re_search_option.pack(side="left")
+
+    return widget, var
+
+
 class Api:
     def __init__(self, host, username, password):
         self.host = host
@@ -131,6 +155,9 @@ class Api:
         return requests.post(url, auth=(self.username, self.password), **kwargs)
 
 
+# ------------------------------------------
+# Utility Functions
+# ------------------------------------------
 def load_env(filename):
     with open(filename, 'r') as env_file:
         lines = env_file.read().splitlines()
@@ -144,6 +171,284 @@ def load_env(filename):
     return settings
 
 
+def is_absolute(url):
+    return bool(urlparse(url).netloc)
+
+
+def create_download_dir(path="downloads"):
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+
+def get_cached_or_download(url):
+    url_sha1 = hashlib.sha1(url.encode())
+    filename = "downloads/{}.html".format(url_sha1.hexdigest())
+    if os.path.exists(filename):
+        with open(filename, "r") as f:
+            print(f"Loaded from file {filename}")
+            return f.read()
+    else:
+        response = requests.get(url)
+        if response.status_code == 200:
+            print(f"Downloaded {filename} from url {url}")
+            with open(filename, "w") as f:
+                f.write(response.text)
+
+            return response.text
+
+    print(f"Failed to get {url}")
+    return None
+
+
+def test_text(text, rule, option):
+    result = False
+    if not rule:
+        return True
+
+    if option == 'split':
+        match = False
+        for kw in rule.split(','):
+            if kw in text:
+                match = True
+                continue
+        if match:
+            result = True
+    elif option == 're.match':
+        if re.match(rule, text):
+            result = True
+    elif option == 're.search':
+        if re.search(rule, text):
+            result = True
+
+    return result
+
+
+class AddDatasetWindow:
+    def __init__(self, parent):
+        self.parent = parent
+        self.parent.add_dataset_button['state'] = 'disabled'
+
+        # ------------------------------------------
+        # Web Scraping variables
+        # ------------------------------------------
+        self.url_downloaded = []
+        self.url_queue = []
+        self.url_queue_lock = threading.Lock()
+        self.scraping_lock = threading.Lock()
+        self.matched_document = []
+
+        # ------------------------------------------
+        # UI Construct
+        # ------------------------------------------
+        self.window = tk.Toplevel(parent, padx=5, pady=5)
+        self.window.protocol("WM_DELETE_WINDOW", self.handle_close)
+        self.window.attributes('-topmost', 'true')
+
+        # Scraping Input
+        self.dataset_name_entry = EntryRow(self.window, "Dataset Name", 0)
+        self.max_document_count_entry = EntryRow(self.window, "Max Num. of Document", 1)
+        self.start_url_entry = EntryRow(self.window, "Starting Url", 2)
+
+        # -- Rules
+        tk.Label(self.window, text="Rules").grid(column=0, row=3, sticky="nw", pady=(20, 5))
+
+        self.url_contains_entry, self.url_option = RuleRadioInputRow(self.window, "Url contains", 4)
+        self.url_not_contains_entry, self.url_not_option = RuleRadioInputRow(self.window, "Url not contains", 6)
+        self.title_contains_entry, self.title_option = RuleRadioInputRow(self.window, "Title contains", 8)
+        self.title_not_contains_entry, self.title_not_option = RuleRadioInputRow(self.window, "Title not contains", 10)
+
+        self.body_selector_entry = EntryRow(self.window, 'Body selector', 12, pady=(20, 5))
+        self.body_contains_entry, self.body_option = RuleRadioInputRow(self.window, "Body contains", 13)
+        self.body_not_contains_entry, self.body_not_option = RuleRadioInputRow(self.window, "Body not contains", 15)
+
+        # Start/Stop scraping
+        button_frame = tk.Frame(self.window)
+        button_frame.grid(column=1, row=100, sticky="nw", pady=(10, 5))
+
+        self.start_button = tk.Button(button_frame, text="Start Web Scraping", command=self.handle_start_scraping)
+        self.start_button.pack(side='left')
+
+        self.stop_button = tk.Button(button_frame, text="Stop", command=self.handle_stop_scraping)
+        self.stop_button['state'] = 'disabled'
+        self.stop_button.pack(side='left')
+
+        # Load/Save setting
+        self.load_setting_button = tk.Button(button_frame, text="Load Setting", command=self.handle_load_setting)
+        self.load_setting_button.pack(side='left', padx=(20, 0))
+
+        self.save_setting_button = tk.Button(button_frame, text="Save", command=self.handle_save_setting)
+        self.save_setting_button.pack(side='left')
+
+        tk.Label(self.window, text="Output").grid(column=0, row=101, sticky="wn", pady=(0, 5))
+
+        # Textbox for output
+        self.output_textbox = Textbox(self.window, height=8, font=('DejaVu Sans Mono', 9, 'normal'), bg='black', fg='white')
+        self.output_textbox.grid(column=0, row=102, columnspan=2, sticky="news")
+
+    def handle_close(self):
+        self.parent.add_dataset_button['state'] = 'normal'
+        self.window.destroy()
+
+    def handle_start_scraping(self):
+        # create dataset
+        dataset_name = self.dataset_name_entry.get()
+
+        payload = {'name': dataset_name}
+        response = self.parent.api.post('/api/datasets/', data=payload)
+        dataset = json.loads(response.text)
+
+        self.output_textbox.insert_end('Sending request...\nPOST:/api/datasets/\nData: {}\n'.format(payload))
+
+        if response.status_code not in (200, 201):
+            self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ERROR ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+            self.output_textbox.insert_end('{}\n'.format(json.dumps(json.loads(response.text), indent=2)))
+            self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+            self.handle_stop_scraping()
+            return
+
+        self.output_textbox.insert_end('Dataset created\n')
+        self.url_queue.append(self.start_url_entry.get())
+
+        create_download_dir()
+
+        url_rule = self.url_contains_entry.get()
+        url_opt = self.url_option.get()
+        url_not_rule = self.url_not_contains_entry.get()
+        url_not_opt = self.url_not_option.get()
+
+        title_rule = self.title_contains_entry.get()
+        title_opt = self.title_option.get()
+        title_not_rule = self.title_not_contains_entry.get()
+        title_not_opt = self.title_not_option.get()
+
+        body_selector = self.body_selector_entry.get()
+        body_rule = self.body_contains_entry.get()
+        body_opt = self.body_option.get()
+        body_not_rule = self.body_not_contains_entry.get()
+        body_not_opt = self.body_not_option.get()
+
+        def save_function(document_url, title, title_clean, raw_content):
+            resp = self.parent.api.post('/api/documents/', data={'url': document_url, 'title': title, 'title_clean': title_clean, 'raw_content': raw_content, 'content': raw_content, 'dataset': dataset['id']})
+
+            self.output_textbox.insert_end(f'Sending request...\nPOST:/api/documents/\n')
+            if resp.status_code not in (200, 201):
+                self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ERROR ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+                self.output_textbox.insert_end('{}\n'.format(json.dumps(json.loads(resp.text), indent=2)))
+                self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+                self.handle_stop_scraping()
+                return
+
+            self.output_textbox.insert_end('Document created\n')
+
+        def scrape_webpage(thread_id):
+            while len(self.url_queue):
+                url = None
+                with self.scraping_lock:
+                    if len(self.url_queue) > 0:
+                        url = self.url_queue.pop()
+
+                if not url:
+                    sleep(2.0)
+                else:
+                    html = get_cached_or_download(url)
+                    if not html:
+                        continue
+
+                    with self.scraping_lock:
+                        self.url_downloaded.append(url)
+                        soup = BeautifulSoup(html, 'html.parser')
+
+                        title = soup.find('title')
+                        print(f'{thread_id} -- {title.text}')
+
+                        if body_selector:
+                            body = soup.select(body_selector)
+                        else:
+                            body = soup.select('body')
+
+                        # skip if match not title rule
+                        if title and title_not_rule and test_text(title.text, title_not_rule, title_not_opt):
+                            print(f'{thread_id} -- skipped matched not title rule {title_not_rule}')
+                            continue
+
+                        # skip if match not body rule
+                        if len(body) and body_not_rule:
+                            match = False
+                            for el in body:
+                                if test_text(el, body_not_rule, body_not_opt):
+                                    match = True
+
+                            if match:
+                                print(f'{thread_id} -- skipped matched not body rule {body_not_rule}')
+                                continue
+
+                        # store document if match title and body rules
+                        if title and test_text(title.text, title_rule, title_opt):
+                            match = False
+                            for el in body:
+                                if test_text(el, body_rule, body_opt):
+                                    match = True
+
+                            if match:
+                                url_sha1 = hashlib.sha1(url.encode())
+                                filename = 'downloads/{}.html'.format(url_sha1.hexdigest())
+                                self.matched_document.append({'filename': filename, 'body_selector': body_selector, 'title': title.text, 'url': url})
+                                print(f'{thread_id} -- KEEP matched title and body rule')
+
+                                content = '\n'.join([el.text for el in body])
+                                save_function(url, title, title, content)
+
+                        links = soup.find_all('a')
+                        new_urls = [link.get('href') for link in links]
+
+                        for new_url in new_urls:
+                            if not is_absolute(new_url):
+                                new_url = urljoin(url, new_url)
+                                new_url = urldefrag(new_url)[0]
+
+                            # skip downloaded url
+                            if new_url in self.url_downloaded:
+                                print(f'{thread_id} -- skip {new_url}. already downloaded')
+                                continue
+
+                            if new_url in self.url_queue:
+                                print(f'{thread_id} -- skip {new_url}. already in download queue')
+                                continue
+
+                            # skip match not url rule
+                            if url_not_rule and test_text(new_url, url_not_rule, url_not_opt):
+                                print(f'{thread_id} -- skip {new_url}. matched url_not_rule')
+                                continue
+
+                            # download match url rule
+                            if test_text(new_url, url_rule, url_opt):
+                                print(f'{thread_id} -- Added new url to queue. {new_url}')
+                                self.url_queue.append(new_url)
+        
+        t1 = threading.Thread(target=scrape_webpage, args=('thread-1',), daemon=True)
+        t1.start()
+
+        t2 = threading.Thread(target=scrape_webpage, args=('thread-2',), daemon=True)
+        t2.start()
+
+        t3 = threading.Thread(target=scrape_webpage, args=('thread-3',), daemon=True)
+        t3.start()
+
+        t4 = threading.Thread(target=scrape_webpage, args=('thread-4',), daemon=True)
+        t4.start()
+
+        self.handle_stop_scraping()
+
+    def handle_stop_scraping(self):
+        pass
+
+    def handle_load_setting(self):
+        pass
+
+    def handle_save_setting(self):
+        pass
+
+
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -153,7 +458,14 @@ class App(tk.Tk):
         self.title("NusantaraFood - Web Scraper")
         self.geometry("1000x600")
 
-        # Login
+        # ------------------------------------------
+        # Sub-window (Add dataset)
+        # ------------------------------------------
+        self.add_dataset_window = None
+
+        # ------------------------------------------
+        # Top row (Login)
+        # ------------------------------------------
         self.login_frame = tk.Frame(self, bg="#bbbbbb")
         self.login_frame.pack(fill='both')
 
@@ -173,7 +485,9 @@ class App(tk.Tk):
         self.login_button = tk.Button(self.login_frame, text="Login", pady=1, command=self.get_dataset_list)
         self.login_button.grid(column=6, row=0)
 
-        # Dataset List Column
+        # ------------------------------------------
+        # 1st Column (Dataset List)
+        # ------------------------------------------
         self.dataset_list_frame = tk.Frame(self, padx=5, pady=5, bg="#bbbbbb")
         self.dataset_list_frame.pack(side="left", fill="y")
 
@@ -183,11 +497,13 @@ class App(tk.Tk):
         self.dataset_list_variable = tk.Variable(value=[])
         self.dataset_listbox = DbListbox(self.dataset_list_frame, self.dataset_list_variable, handle_select=self.handle_dataset_selected)
 
-        self.add_dataset_button = tk.Button(self.dataset_list_frame, text="Add Dataset", command=self.show_add_dataset_window)
+        self.add_dataset_button = tk.Button(self.dataset_list_frame, text="Add Dataset", command=self.handle_show_add_dataset_window)
         self.add_dataset_button['state'] = 'disabled'
         self.add_dataset_button.pack(anchor="nw", pady=5)
 
-        # Dataset Detail Column
+        # ------------------------------------------
+        # 2nd Column (Dataset details)
+        # ------------------------------------------
         self.dataset_detail_frame = tk.Frame(self, width=250, padx=5, pady=5, bg="#cccccc")
         self.dataset_detail_frame.pack(side="left", fill="y")
         self.dataset_detail_frame.pack_propagate(0)
@@ -196,7 +512,9 @@ class App(tk.Tk):
         _, self.dataset_source_label = StackedLabels(self.dataset_detail_frame, "Source:", "-", bg="#cccccc", width=30)
         _, self.dataset_document_count_label = StackedLabels(self.dataset_detail_frame, "Document Count:", "-", bg="#cccccc", width=30)
 
-        # Document List Column
+        # ------------------------------------------
+        # 3rd Column (Document list)
+        # ------------------------------------------
         self.document_list_frame = tk.Frame(self, padx=5, pady=5, bg="#dddddd")
         self.document_list_frame.pack(side="left", fill="y")
 
@@ -208,7 +526,9 @@ class App(tk.Tk):
         self.delete_document_button = tk.Button(self.document_list_frame, text="Delete Document", state="disabled")
         self.delete_document_button.pack(anchor="nw", pady=5)
 
-        # Document Detail Column
+        # ------------------------------------------
+        # 4th Column (Document details)
+        # ------------------------------------------
         self.document_detail_frame = tk.Frame(self, padx=5, pady=5, bg="#eeeeee")
         self.document_detail_frame.pack(side="left", fill="both")
 
@@ -222,15 +542,6 @@ class App(tk.Tk):
         tk.Label(self.document_detail_frame, text="Content", anchor="nw", bg="#eeeeee", width=35).pack(pady=(5, 0), fill="x")
         self.document_content_textbox = Textbox(self.document_detail_frame, height=8)
         self.document_content_textbox.pack(pady=(0, 5))
-
-        self.start_button = None
-        self.stop_button = None
-        self.output_textbox = None
-        self.url_downloaded = []
-        self.url_queue = []
-        self.url_queue_lock = threading.Lock()
-        self.scraping_lock = threading.Lock()
-        self.matched_document = []
 
     def get_dataset_list(self):
         host = self.host_entry.get()
@@ -302,294 +613,8 @@ class App(tk.Tk):
             self.document_raw_content_textbox.set_text(data['raw_content'])
 
     # Sub window
-    def show_add_dataset_window(self):
-        add_dataset_window = tk.Toplevel(self, padx=5, pady=5)
-        add_dataset_window.attributes('-topmost', 'true')
-
-        # Close window event
-        # Handle button state in main window
-        def handle_close():
-            self.add_dataset_button['state'] = 'normal'
-            add_dataset_window.destroy()
-
-        add_dataset_window.protocol("WM_DELETE_WINDOW", handle_close)
-        self.add_dataset_button['state'] = 'disabled'
-
-        # Widgets
-        def add_entry(label, row, pady=(0, 5)):
-            tk.Label(add_dataset_window, text=label).grid(column=0, row=row, sticky="w", pady=pady, padx=(0, 10))
-            widget = tk.Entry(add_dataset_window, width=50)
-            widget.grid(column=1, row=row, sticky="new", pady=pady)
-            return widget
-
-        dataset_name_entry = add_entry("Dataset Name", 0)
-        max_document_count_entry = add_entry("Max Num. of Document", 1)
-        start_url_entry = add_entry("Starting Url", 2)
-
-        tk.Label(add_dataset_window, text="Rules").grid(column=0, row=3, sticky="nw", pady=(20, 5))
-
-        def print_options():
-            print(url_var.get())
-            print(url_not_var.get())
-            print(title_var.get())
-            print(title_not_var.get())
-            print(body_var.get())
-            print(body_not_var.get())
-
-        def add_rule_entry(label, row):
-            widget = add_entry(label, row)
-            frame = tk.Frame(add_dataset_window)
-            frame.grid(column=1, row=row+1, sticky="new", pady=(0, 5))
-            var = tk.StringVar(value="split")
-            split_comma_option = tk.Radiobutton(frame, variable=var, value="split", text="split comma", command=print_options)
-            split_comma_option.pack(side="left")
-            re_match_option = tk.Radiobutton(frame, variable=var, value="re.match", text="re.match", command=print_options)
-            re_match_option.pack(side="left")
-            re_search_option = tk.Radiobutton(frame, variable=var, value="re.search", text="re.search", command=print_options)
-            re_search_option.pack(side="left")
-
-            return widget, var
-
-        url_contains_entry, url_var = add_rule_entry("Url contains", 4)
-        url_not_contains_entry, url_not_var = add_rule_entry("Url not contains", 6)
-        title_contains_entry, title_var = add_rule_entry("Title contains", 8)
-        title_not_contains_entry, title_not_var = add_rule_entry("Title not contains", 10)
-        body_selector_entry = add_entry('Body selector', 12, pady=(20,5))
-        body_contains_entry, body_var = add_rule_entry("Body contains", 13)
-        body_not_contains_entry, body_not_var = add_rule_entry("Body not contains", 15)
-
-        def is_absolute(url):
-            return bool(urlparse(url).netloc)
-
-        def get_cached_or_download(url):
-            url_sha1 = hashlib.sha1(url.encode())
-            filename = 'downloads/{}.html'.format(url_sha1.hexdigest())
-            if os.path.exists(filename):
-                with open(filename, 'r') as f:
-                    print('Loaded from file {}'.format(filename))
-                    return f.read()
-            else:
-                response = requests.get(url)
-                if response.status_code == 200:
-                    print('Downloaded {} from url {}'.format(filename, url))
-                    with open(filename, 'w') as f:
-                        f.write(response.text)
-
-                    return response.text
-
-            print('Failed to get {}'.format(url))
-            return None
-
-        def test_rule(text, rule, option):
-            result = False
-            if not rule:
-                return True
-
-            if option == 'split':
-                match = False
-                for kw in rule.split(','):
-                    if kw in text:
-                        match = True
-                        continue
-                if match:
-                    result = True
-            elif option == 're.match':
-                if re.match(rule, text):
-                    result = True
-            elif option == 're.search':
-                if re.search(rule, text):
-                    result = True
-
-            return result
-
-        def scrape_webpage(thread_id, save_function, url_rule, url_opt, url_not_rule, url_not_opt, title_rule, title_opt, title_not_rule, title_not_opt, body_selector, body_rule, body_opt, body_not_rule, body_not_opt):
-            while len(self.url_queue):
-                url = None
-                with self.scraping_lock:
-                    if len(self.url_queue) > 0:
-                        url = self.url_queue.pop()
-
-                if not url:
-                    sleep(2.0)
-                else:
-                    html = get_cached_or_download(url)
-                    if not html:
-                        continue
-
-                    with self.scraping_lock:
-                        self.url_downloaded.append(url)
-                        soup = BeautifulSoup(html, 'html.parser')
-
-                        title = soup.find('title')
-                        print(f'{thread_id} -- {title.text}')
-
-                        if body_selector:
-                            body = soup.select(body_selector)
-                        else:
-                            body = soup.select('body')
-
-                        # skip if match not title rule
-                        if title and title_not_rule and test_rule(title.text, title_not_rule, title_not_opt):
-                            print(f'{thread_id} -- skipped matched not title rule {title_not_rule}')
-                            continue
-
-                        # skip if match not body rule
-                        if len(body) and body_not_rule:
-                            match = False
-                            for el in body:
-                                if test_rule(el, body_not_rule, body_not_opt):
-                                    match = True
-
-                            if match:
-                                print(f'{thread_id} -- skipped matched not body rule {body_not_rule}')
-                                continue
-
-                        # store document if match title and body rules
-                        if title and test_rule(title.text, title_rule, title_opt):
-                            match = False
-                            for el in body:
-                                if test_rule(el, body_rule, body_opt):
-                                    match = True
-
-                            if match:
-                                url_sha1 = hashlib.sha1(url.encode())
-                                filename = 'downloads/{}.html'.format(url_sha1.hexdigest())
-                                self.matched_document.append({'filename': filename, 'body_selector': body_selector, 'title': title.text, 'url': url})
-                                print(f'{thread_id} -- KEEP matched title and body rule')
-
-                                content = '\n'.join([el.text for el in body])
-                                save_function(url, title, title, content)
-
-                        links = soup.find_all('a')
-                        new_urls = [link.get('href') for link in links]
-
-                        for new_url in new_urls:
-                            if not is_absolute(new_url):
-                                new_url = urljoin(url, new_url)
-                                new_url = urldefrag(new_url)[0]
-
-                            # skip downloaded url
-                            if new_url in self.url_downloaded:
-                                print(f'{thread_id} -- skip {new_url}. already downloaded')
-                                continue
-
-                            if new_url in self.url_queue:
-                                print(f'{thread_id} -- skip {new_url}. already in download queue')
-                                continue
-
-                            # skip match not url rule
-                            if url_not_rule and test_rule(new_url, url_not_rule, url_not_opt):
-                                print(f'{thread_id} -- skip {new_url}. matched url_not_rule')
-                                continue
-
-                            # download match url rule
-                            if test_rule(new_url, url_rule, url_opt):
-                                print(f'{thread_id} -- Added new url to queue. {new_url}')
-                                self.url_queue.append(new_url)
-
-
-        def handle_start_scraping():
-            self.start_button['state'] = 'disabled'
-            self.stop_button['state'] = 'normal'
-
-            # create dataset
-            dataset_name = dataset_name_entry.get()
-
-            payload = {'name': dataset_name}
-            response = self.api.post('/api/datasets/', data=payload)
-            dataset = json.loads(response.text)
-
-            self.output_textbox.insert_end('Sending request...\nPOST:/api/datasets/\nData: {}\n'.format(payload))
-            if response.status_code not in (200, 201):
-                self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ERROR ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
-                self.output_textbox.insert_end('{}\n'.format(json.dumps(json.loads(response.text), indent=2)))
-                self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
-                handle_stop_scraping()
-                return
-
-            self.output_textbox.insert_end('Dataset created\n')
-            self.url_queue.append(start_url_entry.get())
-
-            url_contains = url_contains_entry.get()
-            url_contains_opt = url_var.get()
-            url_not_contains = url_not_contains_entry.get()
-            url_not_contains_opt = url_not_var.get()
-
-            title_contains = title_contains_entry.get()
-            title_contains_opt = title_var.get()
-            title_not_contains = title_not_contains_entry.get()
-            title_not_contains_opt = title_not_var.get()
-
-            body_selector = body_selector_entry.get()
-            body_contains = body_contains_entry.get()
-            body_contains_opt = body_var.get()
-            body_not_contains = body_not_contains_entry.get()
-            body_not_contains_opt = body_not_var.get()
-
-            def save_function(document_url, title, title_clean, raw_content):
-                resp = self.api.post('/api/documents/', data={'url': document_url, 'title': title, 'title_clean': title_clean, 'raw_content': raw_content, 'content': raw_content, 'dataset': dataset['id']})
-
-                self.output_textbox.insert_end(f'Sending request...\nPOST:/api/documents/\n')
-                if resp.status_code not in (200, 201):
-                    self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ERROR ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
-                    self.output_textbox.insert_end('{}\n'.format(json.dumps(json.loads(resp.text), indent=2)))
-                    self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
-                    handle_stop_scraping()
-                    return
-
-                self.output_textbox.insert_end('Document created\n')
-
-            thread_args = (save_function,
-                           url_contains, url_contains_opt, url_not_contains, url_not_contains_opt,
-                           title_contains, title_contains_opt, title_not_contains, title_not_contains_opt,
-                           body_selector, body_contains, body_contains_opt, body_not_contains, body_not_contains_opt)
-
-            t1 = threading.Thread(target=scrape_webpage, args=('thread-1', *thread_args), daemon=True)
-            t1.start()
-
-            t2 = threading.Thread(target=scrape_webpage, args=('thread-2', *thread_args), daemon=True)
-            t2.start()
-
-            t3 = threading.Thread(target=scrape_webpage, args=('thread-3', *thread_args), daemon=True)
-            t3.start()
-
-            t4 = threading.Thread(target=scrape_webpage, args=('thread-4', *thread_args), daemon=True)
-            t4.start()
-
-            handle_stop_scraping()
-
-        def handle_stop_scraping():
-            self.start_button['state'] = 'normal'
-            self.stop_button['state'] = 'disabled'
-            print("stop scraping")
-
-        def handle_save_setting():
-            pass
-
-        def handle_load_setting():
-            pass
-
-        button_frame = tk.Frame(add_dataset_window)
-        button_frame.grid(column=1, row=100, sticky="nw", pady=(10, 5))
-
-        self.start_button = tk.Button(button_frame, text="Start Web Scraping", command=handle_start_scraping)
-        self.start_button.pack(side='left')
-
-        self.stop_button = tk.Button(button_frame, text="Stop", command=handle_stop_scraping)
-        self.stop_button['state'] = 'disabled'
-        self.stop_button.pack(side='left')
-
-        self.load_setting_button = tk.Button(button_frame, text="Load Setting", command=handle_load_setting)
-        self.load_setting_button.pack(side='left', padx=(20, 0))
-
-        self.save_setting_button = tk.Button(button_frame, text="Save", command=handle_save_setting)
-        self.save_setting_button.pack(side='left')
-
-        tk.Label(add_dataset_window, text="Output").grid(column=0, row=101, sticky="wn", pady=(0, 5))
-
-        # Textbox for output
-        self.output_textbox = Textbox(add_dataset_window, height=8, font=('DejaVu Sans Mono', 9, 'normal'), bg='black', fg='white')
-        self.output_textbox.grid(column=0, row=102, columnspan=2, sticky="news")
+    def handle_show_add_dataset_window(self):
+        self.add_dataset_window = AddDatasetWindow(self)
 
 
 if __name__ == "__main__":
