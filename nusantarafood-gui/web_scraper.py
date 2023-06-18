@@ -206,18 +206,17 @@ def test_text(text, rule, option):
         return True
 
     if option == 'split':
-        match = False
+        match = True
         for kw in rule.split(','):
-            if kw in text:
-                match = True
-                continue
+            if kw not in text.lower():
+                match = False
         if match:
             result = True
     elif option == 're.match':
         if re.match(rule, text):
             result = True
     elif option == 're.search':
-        if re.search(rule, text):
+        if re.search(rule, text, re.MULTILINE):
             result = True
 
     return result
@@ -236,6 +235,7 @@ class AddDatasetWindow:
         self.url_queue_lock = threading.Lock()
         self.scraping_lock = threading.Lock()
         self.matched_document = []
+        self.document_count = 0
 
         # ------------------------------------------
         # UI Construct
@@ -341,6 +341,8 @@ class AddDatasetWindow:
             self.output_textbox.insert_end('Document created\n')
 
         def scrape_webpage(thread_id):
+            max_document_count = self.max_document_count_entry.get()
+
             while len(self.url_queue):
                 url = None
                 with self.scraping_lock:
@@ -361,6 +363,43 @@ class AddDatasetWindow:
                         title = soup.find('title')
                         print(f'{thread_id} -- {title.text}')
 
+                        links = soup.find_all('a')
+                        new_urls = [link.get('href') for link in links]
+
+                        # ------------------------------------------
+                        # Add url to crawl
+                        #
+                        # -- Will ignore title and body rules since
+                        #    this codes run first
+                        # ------------------------------------------
+                        for new_url in new_urls:
+                            if not is_absolute(new_url):
+                                new_url = urljoin(url, new_url)
+                                new_url = urldefrag(new_url)[0]
+
+                            # skip downloaded url
+                            if new_url in self.url_downloaded:
+                                print(f'{thread_id} -- skip {new_url}. already downloaded')
+                                continue
+
+                            # skip already in queue
+                            if new_url in self.url_queue:
+                                print(f'{thread_id} -- skip {new_url}. already in download queue')
+                                continue
+
+                            # skip match not url rule
+                            if url_not_rule and test_text(new_url, url_not_rule, url_not_opt):
+                                print(f'{thread_id} -- skip {new_url}. matched url_not_rule')
+                                continue
+
+                            # download match url rule
+                            if test_text(new_url, url_rule, url_opt):
+                                print(f'{thread_id} -- Added new url to queue. {new_url}')
+                                self.url_queue.append(new_url)
+
+                        # ------------------------------------------
+                        # Save document to database
+                        # ------------------------------------------
                         if body_selector:
                             body = soup.select(body_selector)
                         else:
@@ -375,56 +414,36 @@ class AddDatasetWindow:
                         if len(body) and body_not_rule:
                             match = False
                             for el in body:
-                                if test_text(el, body_not_rule, body_not_opt):
+                                if test_text(el.text, body_not_rule, body_not_opt):
                                     match = True
 
                             if match:
                                 print(f'{thread_id} -- skipped matched not body rule {body_not_rule}')
                                 continue
 
-                        # store document if match title and body rules
+                        # store document if match all title and body rules
                         if title and test_text(title.text, title_rule, title_opt):
                             match = False
                             for el in body:
-                                if test_text(el, body_rule, body_opt):
+                                if test_text(el.text, body_rule, body_opt):
                                     match = True
 
                             if match:
                                 url_sha1 = hashlib.sha1(url.encode())
                                 filename = 'downloads/{}.html'.format(url_sha1.hexdigest())
-                                self.matched_document.append({'filename': filename, 'body_selector': body_selector, 'title': title.text, 'url': url})
+                                self.matched_document.append(
+                                    {'filename': filename, 'body_selector': body_selector, 'title': title.text,
+                                     'url': url})
                                 print(f'{thread_id} -- KEEP matched title and body rule')
 
                                 content = '\n'.join([el.text for el in body])
                                 save_function(url, title, title, content)
+                                self.document_count += 1
 
-                        links = soup.find_all('a')
-                        new_urls = [link.get('href') for link in links]
+                                if max_document_count and max_document_count.isnumeric():
+                                    if self.document_count > int(max_document_count):
+                                        break
 
-                        for new_url in new_urls:
-                            if not is_absolute(new_url):
-                                new_url = urljoin(url, new_url)
-                                new_url = urldefrag(new_url)[0]
-
-                            # skip downloaded url
-                            if new_url in self.url_downloaded:
-                                print(f'{thread_id} -- skip {new_url}. already downloaded')
-                                continue
-
-                            if new_url in self.url_queue:
-                                print(f'{thread_id} -- skip {new_url}. already in download queue')
-                                continue
-
-                            # skip match not url rule
-                            if url_not_rule and test_text(new_url, url_not_rule, url_not_opt):
-                                print(f'{thread_id} -- skip {new_url}. matched url_not_rule')
-                                continue
-
-                            # download match url rule
-                            if test_text(new_url, url_rule, url_opt):
-                                print(f'{thread_id} -- Added new url to queue. {new_url}')
-                                self.url_queue.append(new_url)
-        
         t1 = threading.Thread(target=scrape_webpage, args=('thread-1',), daemon=True)
         t1.start()
 
