@@ -1,7 +1,7 @@
 import threading
 import tkinter as tk
 from time import sleep
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 import requests
 from urllib.parse import urljoin, urlparse, urldefrag
 import json
@@ -158,7 +158,7 @@ class Api:
 # ------------------------------------------
 # Utility Functions
 # ------------------------------------------
-def load_env(filename):
+def load_cfg(filename):
     with open(filename, 'r') as env_file:
         lines = env_file.read().splitlines()
 
@@ -242,7 +242,7 @@ class AddDatasetWindow:
         # ------------------------------------------
         self.window = tk.Toplevel(parent, padx=5, pady=5)
         self.window.protocol("WM_DELETE_WINDOW", self.handle_close)
-        self.window.attributes('-topmost', 'true')
+        # self.window.attributes('-topmost', 'true')
 
         # Scraping Input
         self.dataset_name_entry = EntryRow(self.window, "Dataset Name", 0)
@@ -443,17 +443,80 @@ class AddDatasetWindow:
         pass
 
     def handle_load_setting(self):
-        pass
+        filename = filedialog.askopenfilename(initialdir="presets")
+
+        if not filename:
+            return
+
+        settings = load_cfg(filename)
+
+        def set_text(widget, text):
+            widget.delete(0, 'end')
+            if text:
+                widget.insert(0, text)
+
+        def set_option(variable, value):
+            if value:
+                variable.set(value)
+            else:
+                variable.set('split')
+
+        set_text(self.start_url_entry, settings['start_url'])
+        set_text(self.max_document_count_entry, settings['max_document_count'])
+
+        set_text(self.url_contains_entry, settings['url_rule'])
+        set_option(self.url_option, settings['url_option'])
+        set_text(self.url_not_contains_entry, settings['url_not_rule'])
+        set_option(self.url_not_option, settings['url_not_option'])
+
+        set_text(self.title_contains_entry, settings['title_rule'])
+        set_option(self.title_option, settings['title_option'])
+        set_text(self.title_not_contains_entry, settings['title_not_rule'])
+        set_option(self.title_not_option, settings['title_not_option'])
+
+        set_text(self.body_selector_entry, settings['body_selector'])
+        set_text(self.body_contains_entry, settings['body_rule'])
+        set_option(self.body_option, settings['body_option'])
+        set_text(self.body_not_contains_entry, settings['body_not_rule'])
+        set_option(self.body_not_option, settings['body_not_option'])
+
+        self.output_textbox.insert_end("Preset loaded from {}\n".format(filename))
 
     def handle_save_setting(self):
-        pass
+        f = filedialog.asksaveasfile(defaultextension="cfg", initialdir="presets")
+
+        def write_text(var_name, widget):
+            f.write("{}={}\n".format(var_name, widget.get()))
+
+        write_text("start_url", self.start_url_entry)
+        write_text("max_document_count", self.max_document_count_entry)
+
+        write_text("url_rule", self.url_contains_entry)
+        write_text("url_option", self.url_option)
+        write_text("url_not_rule", self.url_not_contains_entry)
+        write_text("url_not_option", self.url_not_option)
+
+        write_text("title_rule", self.title_contains_entry)
+        write_text("title_option", self.title_option)
+        write_text("title_not_rule", self.title_not_contains_entry)
+        write_text("title_not_option", self.title_not_option)
+
+        write_text("body_selector", self.body_selector_entry)
+        write_text("body_rule", self.body_contains_entry)
+        write_text("body_option", self.body_option)
+        write_text("body_not_rule", self.body_not_contains_entry)
+        write_text("body_not_option", self.body_not_option)
+
+        f.close()
+
+        self.output_textbox.insert_end("Preset saved to {}\n".format(f.name))
 
 
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.api = None
-        self.settings = load_env('settings.env')
+        self.settings = load_cfg('settings.cfg')
 
         self.title("NusantaraFood - Web Scraper")
         self.geometry("1000x600")
