@@ -352,8 +352,11 @@ class AddDatasetWindow:
                 if not url:
                     sleep(2.0)
                 else:
-                    html = get_cached_or_download(url)
-                    if not html:
+                    try:
+                        html = get_cached_or_download(url)
+                        if not html:
+                            continue
+                    except Exception:
                         continue
 
                     with self.scraping_lock:
