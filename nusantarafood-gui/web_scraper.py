@@ -588,7 +588,11 @@ class App(tk.Tk):
 
         self.add_dataset_button = tk.Button(self.dataset_list_frame, text="Add Dataset", command=self.handle_show_add_dataset_window)
         self.add_dataset_button['state'] = 'disabled'
-        self.add_dataset_button.pack(anchor="nw", pady=5)
+        self.add_dataset_button.pack(side="left", anchor="nw", pady=5)
+
+        self.delete_dataset_button = tk.Button(self.dataset_list_frame, text="Delete", command=self.handle_delete_dataset)
+        self.delete_dataset_button['state'] = 'disabled'
+        self.delete_dataset_button.pack(side="left", anchor="nw", pady=5)
 
         # ------------------------------------------
         # 2nd Column (Dataset details)
@@ -646,6 +650,7 @@ class App(tk.Tk):
 
         # Allow add dataset because connect to host successful
         self.add_dataset_button['state'] = 'normal'
+        self.delete_dataset_button['state'] = 'normal'
 
         data = json.loads(response.text)
         if response.status_code != 200:
@@ -700,6 +705,26 @@ class App(tk.Tk):
 
         if 'raw_content' in data:
             self.document_raw_content_textbox.set_text(data['raw_content'])
+
+    def handle_delete_dataset(self):
+        dataset_id, dataset_name = self.dataset_listbox.get_selection()
+
+        # Do nothing when dataset selection empty
+        if not dataset_id:
+            return
+
+        # Delete dataset
+        url = '/api/datasets/{}'.format(dataset_id)
+        response = self.api.delete(url)
+        if response.status_code not in (200, 204,):
+            if response.text:
+                data = json.loads(response.text)
+                messagebox.showerror('error', data['detail'])
+            return
+
+        # Update dataset list
+        index = self.dataset_listbox.curselection()
+        self.dataset_listbox.delete(index)
 
     def handle_delete_document(self):
         document_id, document_name = self.document_listbox.get_selection()
