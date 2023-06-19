@@ -154,6 +154,10 @@ class Api:
         url = urljoin(self.host, path)
         return requests.post(url, auth=(self.username, self.password), **kwargs)
 
+    def patch(self, path, **kwargs):
+        url = urljoin(self.host, path)
+        return requests.patch(url, auth=(self.username, self.password), **kwargs)
+
     def delete(self, path, **kwargs):
         url = urljoin(self.host, path)
         return requests.delete(url, auth=(self.username, self.password), **kwargs)
@@ -226,6 +230,183 @@ def test_text(text, rule, option):
     return result
 
 
+def load_stopwords(filename):
+    with open(filename, "r") as f:
+        words = f.read().splitlines()
+
+    return words
+
+
+def to_batched_list(stopwords):
+    import math
+
+    batch_size = 50
+    batches = []
+    i = 0
+    for x in range(math.ceil(len(stopwords)/batch_size)):
+        batches.append(stopwords[i:i+batch_size])
+        i += batch_size
+
+    return batches
+
+
+def remove_stopwords(text, stopwords):
+    batches = to_batched_list(stopwords)
+
+    for words in batches:
+        pattern = r"\b({})\b".format("|".join(words))
+        text = re.sub(pattern, "", text)
+
+    return text
+
+
+# ------------------------------------------
+# Clean Document Window
+# ------------------------------------------
+class CleanDatasetWindow:
+    def __init__(self, parent):
+        self.parent = parent
+        self.parent.clean_dataset_button['state'] = 'disabled'
+
+        self.stopword_filename = "stopwords.txt"
+
+        # ------------------------------------------
+        # UI Construct
+        # ------------------------------------------
+        self.window = tk.Toplevel(parent, padx=5, pady=5)
+        self.window.title("Clean Dataset")
+        self.window.protocol("WM_DELETE_WINDOW", self.handle_close)
+        self.window.geometry("640x480")
+
+        # Clean options
+        def checkbutton(text, default=True):
+            var = tk.BooleanVar(value=True)
+            widget = tk.Checkbutton(self.window, text=text, variable=var, onvalue=True, offvalue=False)
+            if default:
+                widget.select()
+            widget.pack(anchor="nw")
+            return widget, var
+
+        tk.Label(self.window, text="Clean dataset's documents").pack(anchor="nw")
+
+        self.clean_what_var = tk.StringVar(value="both")
+        radio_frame = tk.Frame(self.window)
+        radio_frame.pack(pady=(5, 20), anchor="nw")
+        tk.Radiobutton(radio_frame, variable=self.clean_what_var, value="title", text="Title only").pack(side="left")
+        tk.Radiobutton(radio_frame, variable=self.clean_what_var, value="body", text="Body only").pack(side="left")
+        tk.Radiobutton(radio_frame, variable=self.clean_what_var, value="both", text="Both").pack(side="left")
+
+        tk.Label(self.window, text="Operations").pack(anchor="nw", pady=(0, 5))
+        _, self.remove_multi_space_var = checkbutton("Remove multiple spaces")
+        _, self.remove_newline_var = checkbutton("Remove newlines")
+        _, self.remove_long_sentence_var = checkbutton("Remove long sentences (content only)")
+        _, self.remove_stopwords_var = checkbutton("Remove stopwords")
+
+        tk.Label(self.window, text="Stopwords").pack(anchor="nw", pady=(20, 5))
+        stopword_frame = tk.Frame(self.window)
+        stopword_frame.pack(anchor="nw", pady=(0, 20))
+        self.change_stopword_button = tk.Button(stopword_frame, text="Choose file", command=self.handle_choose_file)
+        self.change_stopword_button.pack(side="left", padx=(0, 10))
+        self.stopword_label = tk.Label(stopword_frame, text="stopwords.txt")
+        self.stopword_label.pack(side="left")
+
+        self.clean_button = tk.Button(self.window, text="Clean", command=self.handle_clean)
+        self.clean_button.pack(anchor="nw", pady=(0, 20))
+
+        self.output_textbox = Textbox(self.window, height=8, font=('DejaVu Sans Mono', 9, 'normal'), bg='black', fg='white')
+        self.output_textbox.pack(fill="both", expand=True)
+
+    def handle_close(self):
+        self.parent.clean_dataset_button['state'] = 'normal'
+        self.window.destroy()
+
+    def handle_choose_file(self):
+        self.stopword_filename = filedialog.askopenfilename()
+
+        if not self.stopword_filename:
+            self.stopword_filename = "stopwords.txt"
+
+        self.stopword_label.config(text=self.stopword_filename)
+
+    def handle_clean(self):
+        dataset_id = self.parent.dataset_id_label["text"]
+
+        try:
+            response = self.parent.api.get(f"/api/documents/?dataset={dataset_id}&fields=id")
+        except Exception:
+            messagebox.showerror("Request Failed", f"GET request error /api/documents/?dataset={dataset_id}&fields=id")
+            return
+
+        if response.status_code not in (200, 201):
+            self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ERROR ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+            self.output_textbox.insert_end('{}\n'.format(json.dumps(json.loads(response.text), indent=2)))
+            self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+            return
+
+        data = json.loads(response.text)
+        stopwords = load_stopwords(self.stopword_filename)
+        for obj in data:
+            try:
+                response = self.parent.api.get(f"/api/documents/{obj['id']}/?fields=title,raw_content")
+            except Exception:
+                messagebox.showerror("Request Failed", f"GET request error /api/documents/{obj['id']}&fields=title,raw_content")
+                continue
+
+            if response.status_code not in (200, 201):
+                self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ERROR ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+                self.output_textbox.insert_end('{}\n'.format(json.dumps(json.loads(response.text), indent=2)))
+                self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+                return
+
+            document = json.loads(response.text)
+            title = document['title']
+            content = document['raw_content']
+
+            if self.remove_long_sentence_var.get():
+                if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "content":
+                    sentences = content.split(".")
+                    short_sentences = []
+                    for sentence in sentences:
+                        words = re.findall(r"\w+", sentence)
+                        if len(words) <= 20:
+                            short_sentences.append(sentence)
+                    content = ".".join(short_sentences)
+
+            if self.remove_stopwords_var.get():
+                if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "title":
+                    title = remove_stopwords(title, stopwords)
+                if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "content":
+                    content = remove_stopwords(content, stopwords)
+
+            # Replace with ". " to make sure sentences not mixed up.
+            if self.remove_newline_var.get():
+                if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "title":
+                    title = re.sub(r"\.?(\r\n|\n)+", ". ", title)
+                if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "content":
+                    content = re.sub(r"\.?(\r\n|\n)+", ". ", content)
+
+            if self.remove_multi_space_var.get():
+                if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "title":
+                    title = re.sub(r" +", " ", title)
+                if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "content":
+                    content = re.sub(r" +", " ", content)
+
+            payload = {'title_clean': title, 'content': content}
+            response = self.parent.api.patch(f"/api/documents/{obj['id']}/", data=payload)
+            if response.status_code not in (200, 201):
+                self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ERROR ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+                self.output_textbox.insert_end('{}\n'.format(json.dumps(json.loads(response.text), indent=2)))
+                self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+                return
+
+            self.output_textbox.insert_end(f"PATCH /api/documents/{obj['id']}/")
+
+        self.handle_close()
+
+
+# ------------------------------------------
+# Add Dataset Window
+# ------------------------------------------
 class AddDatasetWindow:
     def __init__(self, parent):
         self.parent = parent
@@ -551,6 +732,7 @@ class App(tk.Tk):
         # Sub-window (Add dataset)
         # ------------------------------------------
         self.add_dataset_window = None
+        self.clean_dataset_window = None
 
         # ------------------------------------------
         # Top row (Login)
@@ -601,9 +783,13 @@ class App(tk.Tk):
         self.dataset_detail_frame.pack(side="left", fill="y")
         self.dataset_detail_frame.pack_propagate(0)
 
+        _, self.dataset_id_label = StackedLabels(self.dataset_detail_frame, "Dataset ID:", "-", bg="#cccccc", width=30)
         _, self.dataset_name_label = StackedLabels(self.dataset_detail_frame, "Dataset Name:", "-", bg="#cccccc", width=30)
         _, self.dataset_source_label = StackedLabels(self.dataset_detail_frame, "Source:", "-", bg="#cccccc", width=30)
         _, self.dataset_document_count_label = StackedLabels(self.dataset_detail_frame, "Document Count:", "-", bg="#cccccc", width=30)
+
+        self.clean_dataset_button = tk.Button(self.dataset_detail_frame, text="Clean Dataset", command=self.handle_clean_dataset)
+        self.clean_dataset_button.pack(side="left", anchor="nw", pady=5)
 
         # ------------------------------------------
         # 3rd Column (Document list)
@@ -681,6 +867,7 @@ class App(tk.Tk):
             self.document_listbox.insert('end', text)
 
         # Update dataset details
+        self.dataset_id_label.config(text=dataset_id)
         self.dataset_name_label.config(text=dataset_name)
         self.dataset_document_count_label.config(text='{} items'.format(len(data)))
 
@@ -746,9 +933,13 @@ class App(tk.Tk):
         index = self.document_listbox.curselection()
         self.document_listbox.delete(index)
 
+    def handle_clean_dataset(self):
+        self.clean_dataset_window = CleanDatasetWindow(self)
+
     # Sub window
     def handle_show_add_dataset_window(self):
         self.add_dataset_window = AddDatasetWindow(self)
+
 
 if __name__ == "__main__":
     app = App()
