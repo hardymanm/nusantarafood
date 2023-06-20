@@ -205,7 +205,7 @@ class App(tk.Tk):
         _, self.dataset_source_label = StackedLabels(self.dataset_detail_frame, "Source:", "-", bg="#cccccc", width=30)
 
         # ------------------------------------------
-        # 3rd column Topics & Words from LDA
+        # 3rd column (LDA terms list)
         # ------------------------------------------
         self.lda_frame = tk.Frame(self, padx=5, pady=5, bg="#dddddd")
         self.lda_frame.pack(side="left", fill="y")
@@ -219,7 +219,7 @@ class App(tk.Tk):
         self.delete_term_button = tk.Button(self.lda_frame, text="Delete term", command=self.handle_delete_term)
 
         # ------------------------------------------
-        # 4th Column (Wiki details)
+        # 4th Column (Hypernyms)
         # ------------------------------------------
         self.wordnet_frame = tk.Frame(self, padx=5, pady=5, bg="#eeeeee")
         self.wordnet_frame.pack(side="left", fill="both")
@@ -252,9 +252,6 @@ class App(tk.Tk):
             self.dataset_listbox.insert('end', text)
 
     def handle_delete_term(self):
-        pass
-
-    def handle_lda(self):
         pass
 
     def handle_scrape_wordnet(self):
