@@ -289,6 +289,7 @@ class App(tk.Tk):
         self.lda_terms_listbox.pack()
 
         self.delete_term_button = tk.Button(self.lda_frame, text="Delete term", command=self.handle_delete_term)
+        self.delete_term_button.pack(anchor="nw")
 
         # ------------------------------------------
         # 4th Column (Hypernyms)
@@ -324,7 +325,15 @@ class App(tk.Tk):
             self.dataset_listbox.insert('end', text)
 
     def handle_delete_term(self):
-        pass
+        term_id, term_name = self.lda_terms_listbox.get_selection()
+        if not term_id:
+            return
+
+        response = self.api.delete('/api/words/{}'.format(term_id))
+
+        # Update term list
+        index = self.lda_terms_listbox.curselection()
+        self.lda_terms_listbox.delete(index)
 
     def handle_scrape_wordnet(self):
         ScrapeWordnetWindow(self)
