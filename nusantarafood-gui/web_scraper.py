@@ -329,28 +329,15 @@ class CleanDatasetWindow:
         self.stopword_label.config(text=self.stopword_filename)
 
     def handle_clean(self):
-        dataset_id = self.parent.dataset_id_label["text"]
+        def clean():
+            dataset_id = self.parent.dataset_id_label["text"]
 
-        try:
-            response = self.parent.api.get(f"/api/documents/?dataset={dataset_id}&fields=id")
-        except Exception:
-            messagebox.showerror("Request Failed", f"GET request error /api/documents/?dataset={dataset_id}&fields=id")
-            return
-
-        if response.status_code not in (200, 201):
-            self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ERROR ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
-            self.output_textbox.insert_end('{}\n'.format(json.dumps(json.loads(response.text), indent=2)))
-            self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
-            return
-
-        data = json.loads(response.text)
-        stopwords = load_stopwords(self.stopword_filename)
-        for obj in data:
             try:
-                response = self.parent.api.get(f"/api/documents/{obj['id']}/?fields=title,raw_content")
+                response = self.parent.api.get(f"/api/documents/?dataset={dataset_id}&fields=id")
             except Exception:
-                messagebox.showerror("Request Failed", f"GET request error /api/documents/{obj['id']}&fields=title,raw_content")
-                continue
+                messagebox.showerror("Request Failed",
+                                     f"GET request error /api/documents/?dataset={dataset_id}&fields=id")
+                return
 
             if response.status_code not in (200, 201):
                 self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ERROR ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
@@ -358,50 +345,74 @@ class CleanDatasetWindow:
                 self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
                 return
 
-            document = json.loads(response.text)
-            title = document['title']
-            content = document['raw_content']
+            data = json.loads(response.text)
+            stopwords = load_stopwords(self.stopword_filename)
+            for obj in data:
+                try:
+                    response = self.parent.api.get(f"/api/documents/{obj['id']}/?fields=title,raw_content")
+                except Exception:
+                    messagebox.showerror("Request Failed",
+                                         f"GET request error /api/documents/{obj['id']}&fields=title,raw_content")
+                    continue
 
-            if self.remove_long_sentence_var.get():
-                if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "content":
-                    sentences = content.split(".")
-                    short_sentences = []
-                    for sentence in sentences:
-                        words = re.findall(r"\w+", sentence)
-                        if len(words) <= 20:
-                            short_sentences.append(sentence)
-                    content = ".".join(short_sentences)
+                if response.status_code not in (200, 201):
+                    self.output_textbox.insert_end(
+                        '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ERROR ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+                    self.output_textbox.insert_end('{}\n'.format(json.dumps(json.loads(response.text), indent=2)))
+                    self.output_textbox.insert_end(
+                        '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+                    return
 
-            if self.remove_stopwords_var.get():
-                if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "title":
-                    title = remove_stopwords(title, stopwords)
-                if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "content":
-                    content = remove_stopwords(content, stopwords)
+                document = json.loads(response.text)
+                title = document['title']
+                content = document['raw_content']
 
-            # Replace with ". " to make sure sentences not mixed up.
-            if self.remove_newline_var.get():
-                if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "title":
-                    title = re.sub(r"\.?(\r\n|\n)+", ". ", title)
-                if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "content":
-                    content = re.sub(r"\.?(\r\n|\n)+", ". ", content)
+                if self.remove_long_sentence_var.get():
+                    if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "content":
+                        sentences = content.split(".")
+                        short_sentences = []
+                        for sentence in sentences:
+                            words = re.findall(r"\w+", sentence)
+                            if len(words) <= 20:
+                                short_sentences.append(sentence)
+                        content = ".".join(short_sentences)
 
-            if self.remove_multi_space_var.get():
-                if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "title":
-                    title = re.sub(r" +", " ", title)
-                if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "content":
-                    content = re.sub(r" +", " ", content)
+                if self.remove_stopwords_var.get():
+                    if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "title":
+                        title = remove_stopwords(title, stopwords)
+                    if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "content":
+                        content = remove_stopwords(content, stopwords)
 
-            payload = {'title_clean': title, 'content': content}
-            response = self.parent.api.patch(f"/api/documents/{obj['id']}/", data=payload)
-            if response.status_code not in (200, 201):
-                self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ERROR ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
-                self.output_textbox.insert_end('{}\n'.format(json.dumps(json.loads(response.text), indent=2)))
-                self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
-                return
+                # Replace with ". " to make sure sentences not mixed up.
+                if self.remove_newline_var.get():
+                    if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "title":
+                        title = re.sub(r"\.?(\r\n|\n)+", ". ", title)
+                    if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "content":
+                        content = re.sub(r"\.?(\r\n|\n)+", ". ", content)
 
-            self.output_textbox.insert_end(f"PATCH /api/documents/{obj['id']}/")
+                if self.remove_multi_space_var.get():
+                    if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "title":
+                        title = re.sub(r" +", " ", title)
+                    if self.clean_what_var.get() == "both" or self.clean_what_var.get() == "content":
+                        content = re.sub(r" +", " ", content)
 
-        self.handle_close()
+                payload = {'title_clean': title, 'content': content}
+                response = self.parent.api.patch(f"/api/documents/{obj['id']}/", data=payload)
+                if response.status_code not in (200, 201):
+                    self.output_textbox.insert_end(
+                        '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ERROR ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+                    self.output_textbox.insert_end('{}\n'.format(json.dumps(json.loads(response.text), indent=2)))
+                    self.output_textbox.insert_end(
+                        '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+                    return
+
+                # self.window.event_generate("<<LogOutput>>", when="tail", state=f"'PATCH /api/documents/{obj['id']}/'")
+                self.output_textbox.insert_end(f"PATCH /api/documents/{obj['id']}/\n")
+
+            self.output_textbox.insert_end("Clean finished\n")
+
+        thread = threading.Thread(target=clean, daemon=True)
+        thread.start()
 
 
 # ------------------------------------------
