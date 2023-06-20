@@ -49,6 +49,8 @@ class WordViewSet(viewsets.ModelViewSet):
     queryset = models.Word.objects.all()
     serializer_class = serializers.WordSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filterset_fields = ['dataset',]
+    pagination_class = None
 
 
 class JudgeSessionViewSet(viewsets.ModelViewSet):
