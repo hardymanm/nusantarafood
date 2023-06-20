@@ -2,10 +2,11 @@ import json
 import re
 import tkinter as tk
 import types
-from tkinter import messagebox
+from tkinter import messagebox, font
 from urllib.parse import urljoin
 import requests
 
+import lda
 
 # Custom text widget with scrollbar
 class Textbox(tk.Frame):
@@ -93,6 +94,14 @@ def Entry(*args, default='', **kwargs):
     entry.insert(0, default)
     return entry
 
+
+def EntryRow(parent, text="", row=None, pady=(0, 5), **kwargs):
+    tk.Label(parent, text=text).grid(column=0, row=row, sticky="w", pady=pady, padx=(0, 10))
+    widget = Entry(parent, width=50, **kwargs)
+    widget.grid(column=1, row=row, sticky="new", pady=pady)
+    return widget
+
+
 def StackedLabels(*args, **kwargs):
     parent = args[0]
 
@@ -150,6 +159,66 @@ def load_cfg(filename):
     return settings
 
 
+class ScrapeWordnetWindow:
+    def __init__(self, parent):
+        self.parent = parent
+        self.parent.scrape_wordnet_button['state'] = 'disabled'
+
+        self.window = tk.Toplevel(parent, padx=5, pady=5)
+        self.window.title("Scrape Wordnet")
+        self.window.protocol("WM_DELETE_WINDOW", self.handle_close)
+
+        lda_label = tk.Label(self.window, text="LDA Model")
+        lda_label.grid(column=0, row=0, sticky="nw", pady=(0, 5))
+        f = font.Font(lda_label, lda_label.cget("font"))
+        f.configure(underline=True)
+        lda_label.configure(font=f)
+
+        self.passes_count_entry = EntryRow(self.window, "LDA passes", 1, default='20')
+        self.topic_count_entry = EntryRow(self.window, "Topic count", 2, default='1')
+        self.term_limit_entry = EntryRow(self.window, "Terms count per topic", 3, default='30')
+
+        wordnet_label = tk.Label(self.window, text="Wordnet")
+        wordnet_label.grid(column=0, row=4, sticky="nw", pady=(20, 5))
+        wordnet_label.configure(font=f)
+        self.language_entry = EntryRow(self.window, "Language", 5, pady=(0, 20), default='zsm')
+
+        self.scrape_button = tk.Button(self.window, text="Scrape", command=self.handle_scrape)
+        self.scrape_button.grid(column=1, row=6, sticky="nw", pady=(0, 10))
+
+    def handle_close(self):
+        self.parent.scrape_wordnet_button['state'] = 'normal'
+        self.window.destroy()
+
+    def handle_scrape(self):
+        dataset_id, dataset_name = self.parent.dataset_listbox.get_selection()
+        if not dataset_id:
+            return
+
+        url = '/api/documents/?dataset={}&fields=id,content'.format(dataset_id)
+        response = self.parent.api.get(url)
+        data = json.loads(response.text)
+        if response.status_code != 200:
+            messagebox.showerror('error', data['detail'])
+            return
+
+        contents = [document['content'] for document in data]
+
+        num_topics = int(self.topic_count_entry.get())
+        passes_count = int(self.passes_count_entry.get())
+        num_terms = int(self.term_limit_entry.get())
+        lang = self.language_entry.get()
+
+        lda_model = lda.make_LDAmodel(contents, num_topics, passes_count)
+        word_list = lda.get_word_list(lda_model, num_terms)
+        word_list_with_hypernyms = [lda.scrape_hypernym(word, lang) for word in word_list]
+
+        for word, hypernyms in word_list_with_hypernyms:
+            hypernym_json = json.dumps(hypernyms)
+            payload = {"dataset": dataset_id, "noun": word, "hypernym_json": hypernym_json}
+            self.parent.api.post('/api/words/', data=payload)
+
+
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -204,6 +273,9 @@ class App(tk.Tk):
         _, self.dataset_name_label = StackedLabels(self.dataset_detail_frame, "Dataset Name:", "-", bg="#cccccc", width=30)
         _, self.dataset_source_label = StackedLabels(self.dataset_detail_frame, "Source:", "-", bg="#cccccc", width=30)
 
+        self.scrape_wordnet_button = tk.Button(self.dataset_detail_frame, text="Scrape Wordnet", command=self.handle_scrape_wordnet)
+        self.scrape_wordnet_button.pack(anchor="nw")
+
         # ------------------------------------------
         # 3rd column (LDA terms list)
         # ------------------------------------------
@@ -255,7 +327,7 @@ class App(tk.Tk):
         pass
 
     def handle_scrape_wordnet(self):
-        pass
+        ScrapeWordnetWindow(self)
 
     def handle_dataset_selected(self, event):
         dataset_id, dataset_name = self.dataset_listbox.get_selection()
