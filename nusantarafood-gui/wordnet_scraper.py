@@ -164,6 +164,7 @@ class ScrapeWordnetWindow:
     def __init__(self, parent):
         self.parent = parent
         self.parent.scrape_wordnet_button['state'] = 'disabled'
+        self.dataset_id, self.dataset_name = self.parent.dataset_listbox.get_selection()
 
         self.window = tk.Toplevel(parent, padx=5, pady=5)
         self.window.title("Scrape Wordnet")
@@ -176,7 +177,9 @@ class ScrapeWordnetWindow:
         lda_label.configure(font=f)
 
         self.passes_count_entry = EntryRow(self.window, "LDA passes", 1, default='20')
-        self.topic_count_entry = EntryRow(self.window, "Topic count", 2, default='1')
+        # @TODO: topic count must be greater than 1. otherwise pyldavis will throw assertion error.
+        #        no problem with lda_model
+        self.topic_count_entry = EntryRow(self.window, "Topic count", 2, default='5')
         self.term_limit_entry = EntryRow(self.window, "Terms count per topic", 3, default='30')
 
         wordnet_label = tk.Label(self.window, text="Wordnet")
@@ -194,12 +197,10 @@ class ScrapeWordnetWindow:
     def handle_scrape(self):
         def task():
             self.scrape_button['state'] = 'disabled'
-            self.scrape_button.config(text="Running LDA...")
-            dataset_id, dataset_name = self.parent.dataset_listbox.get_selection()
-            if not dataset_id:
+            if not self.dataset_id:
                 return
 
-            url = '/api/documents/?dataset={}&fields=id,content'.format(dataset_id)
+            url = '/api/documents/?dataset={}&fields=id,content'.format(self.dataset_id)
             response = self.parent.api.get(url)
             data = json.loads(response.text)
             if response.status_code != 200:
@@ -213,15 +214,23 @@ class ScrapeWordnetWindow:
             num_terms = int(self.term_limit_entry.get())
             lang = self.language_entry.get()
 
-            lda_model = lda.make_LDAmodel(contents, num_topics, passes_count)
+            self.scrape_button.config(text="Running LDA...")
+
+            # LDA model
+            lda_model, lda_data = lda.make_LDAmodel(contents, num_topics, passes_count)
+            payload = {"num_topics": num_topics, "passes": passes_count, "lda_data": lda_data.to_json()}
+            self.parent.api.patch(f'/api/datasets/{self.dataset_id}/', data=payload)
+
+            # Wordnet terms
             word_list = lda.get_word_list(lda_model, num_terms)
             word_list_with_hypernyms = [lda.scrape_hypernym(word, lang) for word in word_list]
 
             n = len(word_list_with_hypernyms)
             for i, (word, hypernyms) in enumerate(word_list_with_hypernyms):
                 hypernym_json = json.dumps(hypernyms)
-                payload = {"dataset": dataset_id, "noun": word, "hypernym_json": hypernym_json}
+                payload = {"dataset": self.dataset_id, "noun": word, "hypernym_json": hypernym_json}
                 self.parent.api.post('/api/words/', data=payload)
+
                 self.scrape_button.config(text="Update db record {}/{}".format(i + 1, n))
 
             self.scrape_button.config(text="Finished")
