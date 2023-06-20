@@ -335,8 +335,7 @@ class CleanDatasetWindow:
             try:
                 response = self.parent.api.get(f"/api/documents/?dataset={dataset_id}&fields=id")
             except Exception:
-                messagebox.showerror("Request Failed",
-                                     f"GET request error /api/documents/?dataset={dataset_id}&fields=id")
+                messagebox.showerror("Request Failed", f"GET request error /api/documents/?dataset={dataset_id}&fields=id")
                 return
 
             if response.status_code not in (200, 201):
@@ -351,8 +350,7 @@ class CleanDatasetWindow:
                 try:
                     response = self.parent.api.get(f"/api/documents/{obj['id']}/?fields=title,raw_content")
                 except Exception:
-                    messagebox.showerror("Request Failed",
-                                         f"GET request error /api/documents/{obj['id']}&fields=title,raw_content")
+                    messagebox.showerror("Request Failed", f"GET request error /api/documents/{obj['id']}&fields=title,raw_content")
                     continue
 
                 if response.status_code not in (200, 201):
@@ -406,7 +404,6 @@ class CleanDatasetWindow:
                         '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
                     return
 
-                # self.window.event_generate("<<LogOutput>>", when="tail", state=f"'PATCH /api/documents/{obj['id']}/'")
                 self.output_textbox.insert_end(f"PATCH /api/documents/{obj['id']}/\n")
 
             self.output_textbox.insert_end("Clean finished\n")
