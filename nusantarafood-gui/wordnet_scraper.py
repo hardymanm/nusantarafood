@@ -1,5 +1,6 @@
 import json
 import re
+import threading
 import tkinter as tk
 import types
 from tkinter import messagebox, font
@@ -191,32 +192,42 @@ class ScrapeWordnetWindow:
         self.window.destroy()
 
     def handle_scrape(self):
-        dataset_id, dataset_name = self.parent.dataset_listbox.get_selection()
-        if not dataset_id:
-            return
+        def task():
+            self.scrape_button['state'] = 'disabled'
+            self.scrape_button.config(text="Running LDA...")
+            dataset_id, dataset_name = self.parent.dataset_listbox.get_selection()
+            if not dataset_id:
+                return
 
-        url = '/api/documents/?dataset={}&fields=id,content'.format(dataset_id)
-        response = self.parent.api.get(url)
-        data = json.loads(response.text)
-        if response.status_code != 200:
-            messagebox.showerror('error', data['detail'])
-            return
+            url = '/api/documents/?dataset={}&fields=id,content'.format(dataset_id)
+            response = self.parent.api.get(url)
+            data = json.loads(response.text)
+            if response.status_code != 200:
+                messagebox.showerror('error', data['detail'])
+                return
 
-        contents = [document['content'] for document in data]
+            contents = [document['content'] for document in data]
 
-        num_topics = int(self.topic_count_entry.get())
-        passes_count = int(self.passes_count_entry.get())
-        num_terms = int(self.term_limit_entry.get())
-        lang = self.language_entry.get()
+            num_topics = int(self.topic_count_entry.get())
+            passes_count = int(self.passes_count_entry.get())
+            num_terms = int(self.term_limit_entry.get())
+            lang = self.language_entry.get()
 
-        lda_model = lda.make_LDAmodel(contents, num_topics, passes_count)
-        word_list = lda.get_word_list(lda_model, num_terms)
-        word_list_with_hypernyms = [lda.scrape_hypernym(word, lang) for word in word_list]
+            lda_model = lda.make_LDAmodel(contents, num_topics, passes_count)
+            word_list = lda.get_word_list(lda_model, num_terms)
+            word_list_with_hypernyms = [lda.scrape_hypernym(word, lang) for word in word_list]
 
-        for word, hypernyms in word_list_with_hypernyms:
-            hypernym_json = json.dumps(hypernyms)
-            payload = {"dataset": dataset_id, "noun": word, "hypernym_json": hypernym_json}
-            self.parent.api.post('/api/words/', data=payload)
+            n = len(word_list_with_hypernyms)
+            for i, (word, hypernyms) in enumerate(word_list_with_hypernyms):
+                hypernym_json = json.dumps(hypernyms)
+                payload = {"dataset": dataset_id, "noun": word, "hypernym_json": hypernym_json}
+                self.parent.api.post('/api/words/', data=payload)
+                self.scrape_button.config(text="Update db record {}/{}".format(i + 1, n))
+
+            self.scrape_button.config(text="Finished")
+
+        thread = threading.Thread(target=task, daemon=True)
+        thread.start()
 
 
 class App(tk.Tk):
