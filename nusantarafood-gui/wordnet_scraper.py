@@ -246,7 +246,7 @@ class App(tk.Tk):
         self.settings = load_cfg('settings.cfg')
 
         self.title("NusantaraFood - Wordnet Scraper")
-        self.geometry("1000x600")
+        self.geometry("1000x720")
 
         # ------------------------------------------
         # Top row (Login)
