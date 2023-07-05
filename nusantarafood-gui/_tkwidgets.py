@@ -107,11 +107,11 @@ def StackedLabels(*args, **kwargs):
 
     labels = []
     for i, text in enumerate(args[1:]):
-        widget = tk.Label(parent, text=text, anchor="nw", **kwargs)
+        widget = tk.Label(parent, text=text, anchor="nw", justify="left", **kwargs)
         if i == 0:
             widget.pack(pady=(5, 0), fill="x")
         elif i == len(args[1:]) - 1:
-            widget.pack(pady=(0, 5), fill="x")
+            widget.pack(pady=(0, 10), fill="x")
         else:
             widget.pack(fill="x")
 
