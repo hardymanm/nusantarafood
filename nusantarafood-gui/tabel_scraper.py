@@ -113,17 +113,21 @@ class ScrapeTableWindow:
             documents = json.loads(response.text)
             for document in documents:
                 categories = get_tabel_categories(document['title_clean'])
+                
+                self.output_textbox.insert_end(f"{document['title_clean']}\n")
+                
                 payload = {'generated_categories': categories}
                 response = self.parent.api.patch(f"/api/documents/{document['id']}/", json=payload)
                 if response.status_code not in (200, 201):
-                    # self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ERROR ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
-                    # self.output_textbox.insert_end('{}\n'.format(json.dumps(json.loads(response.text), indent=2)))
-                    # self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+                    self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ERROR ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
+                    self.output_textbox.insert_end('{}\n'.format(json.dumps(json.loads(response.text), indent=2)))
+                    self.output_textbox.insert_end('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
                     return
 
-                # self.window.event_generate("<<LogOutput>>", when="tail", state=f"'PATCH /api/documents/{obj['id']}/'")
-                # self.output_textbox.insert_end(f"PATCH /api/documents/{obj['id']}/\n")
+                self.output_textbox.insert_end(f"PATCH /api/documents/{document['id']}/\n\n")
                 print(f"PATCH /api/documents/{document['id']}/")
+            
+            self.output_textbox.insert_end(f"Done.\n")
 
 
         thread = threading.Thread(target=scrape, daemon=True)
@@ -143,7 +147,9 @@ class App(tk.Tk):
         self.title("NusantaraFood - Tabel 1981 Scraper")
         self.geometry("1000x720")
         
-        # --
+        # ------------------------------------------
+        # Food categories labels (id -> names)
+        # ------------------------------------------
         self.categories = dict()
 
         # ------------------------------------------
@@ -206,7 +212,7 @@ class App(tk.Tk):
         self.document_listbox = DbListbox(self.document_list_frame, self.document_list_variable, width=25, handle_select=self.handle_document_selected)
 
         # ------------------------------------------
-        # 4th Column (Wiki details)
+        # 4th Column (Document details)
         # ------------------------------------------
         self.document_detail_frame = tk.Frame(self, padx=5, pady=5, bg="#eeeeee")
         self.document_detail_frame.pack(side="left", fill="both")
@@ -304,7 +310,6 @@ class App(tk.Tk):
         
         self.document_generated_categories_label.config(text="\n".join(tmp))
         
-
 
 if __name__ == "__main__":
     app = App()

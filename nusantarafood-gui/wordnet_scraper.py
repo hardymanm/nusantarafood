@@ -176,7 +176,7 @@ class ScrapeWordnetWindow:
         f.configure(underline=True)
         lda_label.configure(font=f)
 
-        self.passes_count_entry = EntryRow(self.window, "LDA passes", 1, default='20')
+        self.passes_count_entry = EntryRow(self.window, "LDA Iteration", 1, default='20')
         # @TODO: topic count must be greater than 1. otherwise pyldavis will throw assertion error.
         #        no problem with lda_model
         self.topic_count_entry = EntryRow(self.window, "Topic count", 2, default='5')
