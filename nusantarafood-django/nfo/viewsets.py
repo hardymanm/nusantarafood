@@ -43,6 +43,7 @@ class FoodCategoryViewSet(viewsets.ModelViewSet):
     queryset = models.FoodCategory.objects.all()
     serializer_class = serializers.FoodCategorySerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None
 
 
 class WordViewSet(viewsets.ModelViewSet):

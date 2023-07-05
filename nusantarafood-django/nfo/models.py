@@ -155,6 +155,7 @@ class Document(models.Model):
 class FoodCategory(models.Model):
     name = models.CharField(max_length=255)
     name_en = models.CharField(max_length=255)
+    items = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
