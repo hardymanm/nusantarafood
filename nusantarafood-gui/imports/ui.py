@@ -1,13 +1,24 @@
 import re
-import tkinter as tk
 import types
+import tkinter as tk
+from tkinter import font as tkFont
 
+
+class WindowSizeMixin(tk.Tk):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.geometry("1000x720")
+        
+        default_font = tkFont.nametofont("TkDefaultFont")
+        default_font.configure(size=14)        
+        self.option_add("*Font", default_font)
+        
 
 class Textbox(tk.Frame):
     def __init__(self, parent, height=3, **kwargs):
         tk.Frame.__init__(self, parent)
 
-        # Textbox for output
         self.scrollbar = tk.Scrollbar(self)
         self.scrollbar.pack(side="right", fill="y")
 
@@ -42,11 +53,11 @@ class Textbox(tk.Frame):
 def Listbox(parent, variable, width=25, height=25, handle_select=None, **kwargs):
     # Frame to hold listbox and scrollbar
     listbox_frame = tk.Frame(parent, bg="#bbbbbb")
-    listbox_frame.pack()
+    listbox_frame.pack(fill="x")
 
     # Listbox
     listbox = tk.Listbox(listbox_frame, width=width, height=height, listvariable=variable, **kwargs)
-    listbox.pack(side="left")
+    listbox.pack(side="left", fill="x", expand=True)
 
     # scrollbar
     listbox_scroll = tk.Scrollbar(listbox_frame)

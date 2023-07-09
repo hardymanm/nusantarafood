@@ -1,54 +1,13 @@
 import json
-from _tkwidgets import *
+from imports.utils import *
+from imports.ui import *
+from imports.client import Api
 import threading
 import tkinter as tk
-from tkinter import messagebox, font
-from urllib.parse import urljoin
+from tkinter import messagebox
 import requests
 
 
-class Api:
-    def __init__(self, host, username, password):
-        self.host = host
-        self.username = username
-        self.password = password
-
-    def get(self, path, **kwargs):
-        url = urljoin(self.host, path)
-        return requests.get(url, auth=(self.username, self.password), **kwargs)
-
-    def post(self, path, **kwargs):
-        url = urljoin(self.host, path)
-        return requests.post(url, auth=(self.username, self.password), **kwargs)
-
-    def patch(self, path, **kwargs):
-        url = urljoin(self.host, path)
-        return requests.patch(url, auth=(self.username, self.password), **kwargs)
-
-    def delete(self, path, **kwargs):
-        url = urljoin(self.host, path)
-        return requests.delete(url, auth=(self.username, self.password), **kwargs)
-
-
-# ------------------------------------------
-# Utility Functions
-# ------------------------------------------
-def load_cfg(filename):
-    with open(filename, 'r') as env_file:
-        lines = env_file.read().splitlines()
-
-    settings = dict()
-    for line in lines:
-        if line and line[0] != '#':
-            key, value = line.split('=', 1)
-            settings[key] = value
-
-    return settings
-
-
-# ------------------------------------------
-# Utility Functions
-# ------------------------------------------
 class ScrapeTableWindow:
     def __init__(self, parent):
         self.parent = parent
@@ -138,14 +97,13 @@ class ScrapeTableWindow:
         self.window.destroy()
 
 
-class App(tk.Tk):
+class App(WindowSizeMixin):
     def __init__(self):
         super().__init__()
         self.api = None
         self.settings = load_cfg('settings.cfg')
 
         self.title("NusantaraFood - Tabel 1981 Scraper")
-        self.geometry("1000x720")
         
         # ------------------------------------------
         # Food categories labels (id -> names)

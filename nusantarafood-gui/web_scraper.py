@@ -1,127 +1,20 @@
 import threading
 import tkinter as tk
 from time import sleep
-from tkinter import messagebox, filedialog
+from tkinter import messagebox, filedialog, font as tkFont
+from imports.utils import *
+from imports.ui import *
+from imports.client import Api
 import requests
-from urllib.parse import urljoin, urlparse, urldefrag
+from urllib.parse import urljoin, urldefrag
 import json
 import re
 import hashlib
 import os
 from bs4 import BeautifulSoup
-import types
 
-
-# Custom text widget with scrollbar
-class Textbox(tk.Frame):
-    def __init__(self, parent, height=3, **kwargs):
-        tk.Frame.__init__(self, parent)
-
-        # Textbox for output
-        self.scrollbar = tk.Scrollbar(self)
-        self.scrollbar.pack(side="right", fill="y")
-
-        self.textbox = tk.Text(self, height=height, **kwargs)
-        self.textbox.pack(side="left", fill="x", expand=True)
-
-        self.textbox.config(yscrollcommand=self.scrollbar.set)
-        self.scrollbar.config(command=self.textbox.yview)
-
-    def get(self):
-        return self.textbox.get('1.0', 'end-1c')
-
-    def insert(self, *args, **kwargs):
-        self.textbox.insert(*args, **kwargs)
-
-    def insert_end(self, *args, **kwargs):
-        self.textbox.insert('end', *args, **kwargs)
-        self.see('end')
-
-    def delete(self, *args, **kwargs):
-        return self.textbox.delete(*args, **kwargs)
-
-    def see(self, *args, **kwargs):
-        return self.textbox.see(*args, **kwargs)
-
-    def set_text(self, text):
-        self.textbox.delete('1.0', 'end')
-        if text:
-            self.textbox.insert('1.0', text)
-
-
-def Listbox(parent, variable, width=25, height=25, handle_select=None, **kwargs):
-    # Frame to hold listbox and scrollbar
-    listbox_frame = tk.Frame(parent, bg="#bbbbbb")
-    listbox_frame.pack()
-
-    # Listbox
-    listbox = tk.Listbox(listbox_frame, width=width, height=height, listvariable=variable, **kwargs)
-    listbox.pack(side="left")
-
-    # scrollbar
-    listbox_scroll = tk.Scrollbar(listbox_frame)
-    listbox_scroll.pack(side="right", fill="y")
-
-    listbox.config(yscrollcommand=listbox_scroll.set)
-    listbox_scroll.config(command=listbox.yview)
-
-    if handle_select:
-        listbox.bind('<<ListboxSelect>>', handle_select)
-        listbox.bind('<Down>', handle_select)
-        listbox.bind('<Up>', handle_select)
-
-    return listbox
-
-
-def DbListbox(*args, **kwargs):
-    listbox = Listbox(*args, **kwargs)
-
-    def get_selection(self):
-        selected_index = listbox.curselection()
-        if not selected_index:
-            return None, None
-
-        selected_item = listbox.get(selected_index[0])
-        matches = re.findall(r'^#(\d+) - (.+)$', selected_item)
-        if len(matches) == 0:
-            return None, None
-
-        return matches[0]
-
-    listbox.get_selection = types.MethodType(get_selection, listbox)
-
-    return listbox
-
-
-def Entry(*args, default='', **kwargs):
-    entry = tk.Entry(*args, **kwargs)
-    entry.insert(0, default)
-    return entry
-
-
-def StackedLabels(*args, **kwargs):
-    parent = args[0]
-
-    labels = []
-    for i, text in enumerate(args[1:]):
-        widget = tk.Label(parent, text=text, anchor="nw", **kwargs)
-        if i == 0:
-            widget.pack(pady=(5, 0), fill="x")
-        elif i == len(args[1:]) - 1:
-            widget.pack(pady=(0, 5), fill="x")
-        else:
-            widget.pack(fill="x")
-
-        labels.append(widget)
-
-    return labels
-
-
-def EntryRow(parent, text="", row=None, pady=(0, 5), **kwargs):
-    tk.Label(parent, text=text).grid(column=0, row=row, sticky="w", pady=pady, padx=(0, 10))
-    widget = tk.Entry(parent, width=50, **kwargs)
-    widget.grid(column=1, row=row, sticky="new", pady=pady)
-    return widget
+from imports.utils import is_absolute
+from imports.utils import create_dir
 
 
 def RuleRadioInputRow(parent, label, row):
@@ -140,54 +33,9 @@ def RuleRadioInputRow(parent, label, row):
     return widget, var
 
 
-class Api:
-    def __init__(self, host, username, password):
-        self.host = host
-        self.username = username
-        self.password = password
-
-    def get(self, path, **kwargs):
-        url = urljoin(self.host, path)
-        return requests.get(url, auth=(self.username, self.password), **kwargs)
-
-    def post(self, path, **kwargs):
-        url = urljoin(self.host, path)
-        return requests.post(url, auth=(self.username, self.password), **kwargs)
-
-    def patch(self, path, **kwargs):
-        url = urljoin(self.host, path)
-        return requests.patch(url, auth=(self.username, self.password), **kwargs)
-
-    def delete(self, path, **kwargs):
-        url = urljoin(self.host, path)
-        return requests.delete(url, auth=(self.username, self.password), **kwargs)
-
-
 # ------------------------------------------
 # Utility Functions
 # ------------------------------------------
-def load_cfg(filename):
-    with open(filename, 'r') as env_file:
-        lines = env_file.read().splitlines()
-
-    settings = dict()
-    for line in lines:
-        if line and line[0] != '#':
-            key, value = line.split('=', 1)
-            settings[key] = value
-
-    return settings
-
-
-def is_absolute(url):
-    return bool(urlparse(url).netloc)
-
-
-def create_download_dir(path="downloads"):
-    if not os.path.exists(path):
-        os.mkdir(path)
-
-
 def get_cached_or_download(url):
     url_sha1 = hashlib.sha1(url.encode())
     filename = "downloads/{}.html".format(url_sha1.hexdigest())
@@ -502,7 +350,7 @@ class AddDatasetWindow:
         self.output_textbox.insert_end('Dataset created\n')
         self.url_queue.append(self.start_url_entry.get())
 
-        create_download_dir()
+        create_dir()
 
         url_rule = self.url_contains_entry.get()
         url_opt = self.url_option.get()
@@ -727,15 +575,13 @@ class AddDatasetWindow:
         self.output_textbox.insert_end("Preset saved to {}\n".format(f.name))
 
 
-class App(tk.Tk):
+class App(WindowSizeMixin):
     def __init__(self):
         super().__init__()
         self.api = None
         self.settings = load_cfg('settings.cfg')
 
         self.title("NusantaraFood - Web Scraper")
-        self.geometry("1000x720")
-
         # ------------------------------------------
         # Sub-window (Add dataset)
         # ------------------------------------------
@@ -767,8 +613,10 @@ class App(tk.Tk):
         # ------------------------------------------
         # 1st Column (Dataset List)
         # ------------------------------------------
-        self.dataset_list_frame = tk.Frame(self, padx=5, pady=5, bg="#bbbbbb")
+        self.dataset_list_frame = tk.Frame(self, padx=5, pady=5, bg="#bbbbbb", width=220)
         self.dataset_list_frame.pack(side="left", fill="y")
+        self.dataset_list_frame.pack_propagate(False)
+        
 
         self.dataset_label = tk.Label(self.dataset_list_frame, text="Dataset List", anchor="nw", bg="#bbbbbb")
         self.dataset_label.pack(fill="x", pady=5)
@@ -787,7 +635,7 @@ class App(tk.Tk):
         # ------------------------------------------
         # 2nd Column (Dataset details)
         # ------------------------------------------
-        self.dataset_detail_frame = tk.Frame(self, width=250, padx=5, pady=5, bg="#cccccc")
+        self.dataset_detail_frame = tk.Frame(self, width=220, padx=5, pady=5, bg="#cccccc")
         self.dataset_detail_frame.pack(side="left", fill="y")
         self.dataset_detail_frame.pack_propagate(0)
 
@@ -802,8 +650,9 @@ class App(tk.Tk):
         # ------------------------------------------
         # 3rd Column (Document list)
         # ------------------------------------------
-        self.document_list_frame = tk.Frame(self, padx=5, pady=5, bg="#dddddd")
+        self.document_list_frame = tk.Frame(self, width=220, padx=5, pady=5, bg="#dddddd")
         self.document_list_frame.pack(side="left", fill="y")
+        self.document_list_frame.pack_propagate(False)
 
         tk.Label(self.document_list_frame, text="Document List", anchor="nw", bg="#dddddd").pack(pady=5, fill="x")
 
@@ -817,18 +666,18 @@ class App(tk.Tk):
         # 4th Column (Document details)
         # ------------------------------------------
         self.document_detail_frame = tk.Frame(self, padx=5, pady=5, bg="#eeeeee")
-        self.document_detail_frame.pack(side="left", fill="both")
+        self.document_detail_frame.pack(side="left", fill="both", expand=True)
 
         _, self.document_title_label = StackedLabels(self.document_detail_frame, "Document Title:", "-", bg="#eeeeee", width=35)
         _, self.document_title_cleaned_label = StackedLabels(self.document_detail_frame, "Document Title (Cleaned):", "-", bg="#eeeeee", width=35)
 
         tk.Label(self.document_detail_frame, text="Raw Content", anchor="nw", bg="#eeeeee", width=35).pack(pady=(5, 0), fill="x")
         self.document_raw_content_textbox = Textbox(self.document_detail_frame, height=8)
-        self.document_raw_content_textbox.pack(pady=(0, 5))
+        self.document_raw_content_textbox.pack(pady=(0, 5), fill="x")
 
         tk.Label(self.document_detail_frame, text="Content", anchor="nw", bg="#eeeeee", width=35).pack(pady=(5, 0), fill="x")
         self.document_content_textbox = Textbox(self.document_detail_frame, height=8)
-        self.document_content_textbox.pack(pady=(0, 5))
+        self.document_content_textbox.pack(pady=(0, 5), fill="x")
 
     def get_dataset_list(self):
         host = self.host_entry.get()
