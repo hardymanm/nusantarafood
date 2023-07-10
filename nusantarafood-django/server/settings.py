@@ -31,6 +31,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     'nusantarafoodkg.com',
+    'www.nusantarafoodkg.com',
     '68.183.238.65',
 ]
 
