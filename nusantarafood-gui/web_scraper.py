@@ -328,10 +328,12 @@ class AddDatasetWindow:
 
     def handle_close(self):
         self.parent.add_dataset_button['state'] = 'normal'
+        self.start_button['state'] = 'normal'
         self.window.destroy()
 
     def handle_start_scraping(self):
         # create dataset
+        self.start_button['state'] = 'disabled'
         dataset_name = self.dataset_name_entry.get()
 
         payload = {'name': dataset_name}
@@ -385,6 +387,7 @@ class AddDatasetWindow:
             max_document_count = self.max_document_count_entry.get()
 
             while len(self.url_queue):
+                print("----------------------------------")
                 url = None
                 with self.scraping_lock:
                     if len(self.url_queue) > 0:
@@ -401,6 +404,7 @@ class AddDatasetWindow:
                         continue
 
                     with self.scraping_lock:
+                        print(url)
                         self.url_downloaded.append(url)
                         soup = BeautifulSoup(html, 'html.parser')
 
@@ -478,7 +482,9 @@ class AddDatasetWindow:
                                 self.matched_document.append(
                                     {'filename': filename, 'body_selector': body_selector, 'title': title.text,
                                      'url': url})
+                                print('< '*30)
                                 print(f'{thread_id} -- KEEP matched title and body rule')
+                                print('< '*30)
 
                                 content = '\n'.join([el.text for el in body])
                                 save_function(url, title, title, content)
