@@ -11,7 +11,7 @@ class WindowSizeMixin(tk.Tk):
         self.geometry("1000x720")
         
         default_font = tkFont.nametofont("TkDefaultFont")
-        default_font.configure(size=14)        
+        default_font.configure(size=10)        
         self.option_add("*Font", default_font)
         
 
