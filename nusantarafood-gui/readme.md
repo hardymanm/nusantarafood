@@ -1,5 +1,5 @@
-# Nusantarafood Django
-Backend application that handles business logic and database operations
+# Nusantarafood Gui
+Tkinter (GUI) application to scrape data and store them in django backend
 
 # Installation
 1. **Windows only:** Install build tools.  https://visualstudio.microsoft.com/visual-cpp-build-tools/
@@ -12,14 +12,14 @@ Backend application that handles business logic and database operations
 3. Create and activate virtual environment
     On windows:
      ```
-    cd nusantarafood/nusantarafood-django
+    cd nusantarafood/nusantarafood-gui
     python3 -m venv venv
     source venv/Scripts/activate
     ```
     
     On linux:
     ```
-    cd nusantarafood/nusantarafood-django
+    cd nusantarafood/nusantarafood-gui
     python3 -m venv venv
     source venv/bin/activate
     ```
@@ -29,13 +29,4 @@ Backend application that handles business logic and database operations
     pip install -r requirements.txt
     ```
 
-5. Copy database
-    ```
-    scp root@nusantarafoodkg.com:/root/db.sqlite3 db.sqlite3
-    ```
-
-6. Double click ```runserver.bat``` to run django web server.
-    Alternatively:
-    ```
-    python manage.py runserver
-    ```
+6. Double click bat files to run program
