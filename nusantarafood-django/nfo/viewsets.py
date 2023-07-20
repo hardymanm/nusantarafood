@@ -13,6 +13,7 @@ class StandardResultsSetPagination(pagination.PageNumberPagination):
 
 
 class CustomPagination(pagination.LimitOffsetPagination):
+    default_limit = 10000
     def get_paginated_response(self, data):
         return Response(data)
 
