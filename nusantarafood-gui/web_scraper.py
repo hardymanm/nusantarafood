@@ -458,7 +458,10 @@ class AddDatasetWindow:
                 url = None
                 with self.scraping_lock:
                     if len(self.url_queue) > 0:
+                        # url = self.url_queue.pop()
+                        self.url_queue.reverse()
                         url = self.url_queue.pop()
+                        self.url_queue.reverse()
 
                 if not url:
                     sleep(2.0)
