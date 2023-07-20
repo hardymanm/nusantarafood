@@ -3,12 +3,18 @@ from nfo import serializers, models
 from rest_framework import pagination
 from rest_framework import permissions
 from rest_framework import viewsets
+from rest_framework.response import Response
 
 
 class StandardResultsSetPagination(pagination.PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 10000
+
+
+class CustomPagination(pagination.LimitOffsetPagination):
+    def get_paginated_response(self, data):
+        return Response(data)
 
 
 class TokenListViewSet(viewsets.ModelViewSet):
@@ -34,9 +40,9 @@ class DocumentViewSet(viewsets.ModelViewSet):
     queryset = models.Document.objects.all()
     serializer_class = serializers.DocumentSerializer
     permission_classes = [permissions.IsAuthenticated]
-    pagination_class = StandardResultsSetPagination
+    pagination_class = CustomPagination
     filterset_fields = ['dataset',]
-    pagination_class = None
+    # pagination_class = None
 
 
 class FoodCategoryViewSet(viewsets.ModelViewSet):

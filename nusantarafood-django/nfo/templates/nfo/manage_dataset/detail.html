@@ -192,7 +192,7 @@
                         <div class="col-12 col-md-7 overflow-hidden">
                             <a class="text-decoration-none"
                                style="white-space: nowrap"
-                               href="{% url 'manage-document-detail' document.pk %}">{{ document.title }}</a>
+                               href="{% url 'manage-document-detail' document.pk %}">{{ document.clean_title }}</a>
                         </div>
                         <div class="col-5 col-md-2">
                             {% small_heading 'Wikipedia Definition' %}

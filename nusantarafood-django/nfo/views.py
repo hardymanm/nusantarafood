@@ -514,7 +514,7 @@ def document_to_dict(document, method, judge_pk=None):
     answers = get_answers(document, method, judge_pk)
     result = {
         'title': document.title,
-        'title_clean': document.title_clean,
+        'clean_title': document.clean_title,
         'user_text_input': answers,
     }
 

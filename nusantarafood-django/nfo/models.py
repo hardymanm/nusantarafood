@@ -129,10 +129,10 @@ class Document(models.Model):
     dataset = models.ForeignKey('nfo.Dataset', on_delete=models.CASCADE)
 
     title = models.CharField(max_length=255)
-    title_clean = models.CharField(max_length=255)
+    clean_title = models.CharField(max_length=255)
     url = models.CharField(max_length=255, null=True, blank=True)
     raw_content = models.TextField(null=True, blank=True)
-    content = models.TextField()
+    clean_content = models.TextField()
 
     # wikipedia definition
     definition_id = models.TextField(null=True, blank=True)

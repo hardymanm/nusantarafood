@@ -38,7 +38,7 @@
                 {id: 'sc-{{ category.name }}', label: '{{ category.name }} ({{ category.documents|length }})', shape: 'box', color: 'red', font: '16px arial white'},
             {% endfor %}
             {% for document in documents %}
-                {id: 'd-{{ document.pk }}', label: '{{ document.title_clean }}', shape: 'box', color: '#A5D6A7', font: '8px arial #1B5E20'},
+                {id: 'd-{{ document.pk }}', label: '{{ document.clean_title }}', shape: 'box', color: '#A5D6A7', font: '8px arial #1B5E20'},
             {% endfor %}
         ]);
 
