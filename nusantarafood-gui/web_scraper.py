@@ -448,10 +448,14 @@ class AddDatasetWindow:
                 self.handle_stop_scraping()
                 return
 
-            self.output_textbox.insert_end("Document created\n")
+            self.output_textbox.insert_end(f"Document created. [{self.document_count}] \n")
 
         def scrape_webpage(thread_id):
             max_document_count = self.max_document_count_entry.get()
+            try:
+                max_document_count = int(max_document_count)
+            except Exception:
+                max_document_count = 10000
 
             while len(self.url_queue):
                 print("----------------------------------")
